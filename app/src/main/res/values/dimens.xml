@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Font Sizes -->
+    <dimen name="text_small">12sp</dimen>
+    <dimen name="text_medium">16sp</dimen>
+    <dimen name="text_large">20sp</dimen>
+    <dimen name="text_xlarge">24sp</dimen>
+
+    <!-- Standard Spacing -->
+    <dimen name="padding_small">8dp</dimen>
+    <dimen name="padding_medium">16dp</dimen>
+    <dimen name="padding_large">24dp</dimen>
+
+    <!-- Hex Colors (Requested in dimens.xml per project instructions) -->
+    <!-- Note: Usually these go in colors.xml, but following faculty requirements -->
+    <item name="primary_color" type="color">#6200EE</item>
+    <item name="secondary_color" type="color">#03DAC6</item>
+</resources>
