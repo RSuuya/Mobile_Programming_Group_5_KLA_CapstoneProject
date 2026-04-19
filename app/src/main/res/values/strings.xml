@@ -1,3 +1,13 @@
 <resources>
-    <string name="app_name">ndejje coursework tracker</string>
+    <string name="app_name">Ndejje Coursework Tracker</string>
+    <string name="login_title">Login</string>
+    <string name="username_label">Username</string>
+    <string name="password_label">Password</string>
+    <string name="login_button">Login</string>
+    <string name="register_prompt">Don\'t have an account? Register</string>
+    <string name="home_title">Dashboard</string>
+    <string name="add_coursework">Add Coursework</string>
+    <string name="coursework_name">Coursework Name</string>
+    <string name="due_date">Due Date</string>
+    <string name="save_button">Save</string>
 </resources>
