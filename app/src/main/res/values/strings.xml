@@ -19,10 +19,12 @@
     <string name="archive_wip">Archive Screen (Work in Progress)</string>
     <string name="back_button">Back</string>
     <string name="welcome_back">Welcome Back</string>
-    <string name="login_subtitle">Log in to track your progress</string>
+    <string name="login_subtitle">Faculty of Computing Coursework Tracker</string>
     <string name="email_label">Email</string>
     <string name="create_account">Create Account</string>
     <string name="full_name_label">Full Name</string>
     <string name="already_have_account">Already have an account? Log in</string>
     <string name="toggle_password">Toggle Password</string>
+    <string name="error_empty_field">This field cannot be empty</string>
+    <string name="error_invalid_email">Please enter a valid email address</string>
 </resources>

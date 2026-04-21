@@ -13,8 +13,15 @@ import com.courseworktracker.viewmodel.AssignmentViewModel
 import com.courseworktracker.viewmodel.AssignmentViewModelFactory
 import java.util.Date
 
+object Screen {
+    const val Login = "login"
+    const val Register = "register"
+    const val Home = "home"
+    const val AddAssignment = "add_assignment"
+}
+
 @Composable
-fun MainApp() {
+fun CourseworkTrackerApp() {
     val context = LocalContext.current
     val application = context.applicationContext as CourseworkTrackerApplication
     val repository = application.repository
@@ -23,31 +30,39 @@ fun MainApp() {
     val navController = rememberNavController()
     
     NdejjeCourseworkTrackerTheme {
-        NavHost(navController = navController, startDestination = "login") {
-            composable("login") {
+        NavHost(navController = navController, startDestination = Screen.Login) {
+            composable(Screen.Login) {
                 LoginScreen(
-                    onNavigateToRegister = { navController.navigate("register") },
-                    onLoginSuccess = { navController.navigate("home") }
+                    onNavigateToRegister = { navController.navigate(Screen.Register) },
+                    onLoginSuccess = { 
+                        navController.navigate(Screen.Home) {
+                            popUpTo(Screen.Login) { inclusive = true }
+                        }
+                    }
                 )
             }
-            composable("register") {
+            composable(Screen.Register) {
                 RegisterScreen(
-                    onNavigateToLogin = { navController.navigate("login") },
-                    onRegisterSuccess = { navController.navigate("home") }
+                    onNavigateToLogin = { navController.navigate(Screen.Login) },
+                    onRegisterSuccess = { 
+                        navController.navigate(Screen.Home) {
+                            popUpTo(Screen.Register) { inclusive = true }
+                        }
+                    }
                 )
             }
-            composable("home") {
+            composable(Screen.Home) {
                 val viewModel: AssignmentViewModel = viewModel(factory = viewModelFactory)
                 HomeScreen(
                     viewModel = viewModel,
-                    onAddAssignment = { navController.navigate("add_assignment") }
+                    onAddAssignment = { navController.navigate(Screen.AddAssignment) }
                 )
             }
-            composable("add_assignment") {
+            composable(Screen.AddAssignment) {
                 val viewModel: AssignmentViewModel = viewModel(factory = viewModelFactory)
                 AddAssignmentScreen(
-                    onSave = { title, code ->
-                        viewModel.insert(Assignment(title = title, courseCode = code, dueDate = Date(), isCompleted = false))
+                    onSave = { title, code, date ->
+                        viewModel.insert(Assignment(title = title, courseCode = code, dueDate = date, isCompleted = false))
                         navController.popBackStack()
                     },
                     onBack = { navController.popBackStack() }
