@@ -10,4 +10,19 @@
     <string name="coursework_name">Coursework Name</string>
     <string name="due_date">Due Date</string>
     <string name="save_button">Save</string>
+    <string name="upcoming_deadlines">Upcoming Deadlines</string>
+    <string name="due_prefix">Due: </string>
+    <string name="assignment_title">Assignment Title</string>
+    <string name="course_code">Course Code</string>
+    <string name="no_assignments">No assignments found</string>
+    <string name="archive_title">Archive</string>
+    <string name="archive_wip">Archive Screen (Work in Progress)</string>
+    <string name="back_button">Back</string>
+    <string name="welcome_back">Welcome Back</string>
+    <string name="login_subtitle">Log in to track your progress</string>
+    <string name="email_label">Email</string>
+    <string name="create_account">Create Account</string>
+    <string name="full_name_label">Full Name</string>
+    <string name="already_have_account">Already have an account? Log in</string>
+    <string name="toggle_password">Toggle Password</string>
 </resources>
