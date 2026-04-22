@@ -5,9 +5,11 @@ import kotlinx.coroutines.flow.Flow
 
 class AssignmentRepository(private val assignmentDao: AssignmentDao) {
     val allAssignments: Flow<List<Assignment>> = assignmentDao.getAllAssignments()
+    val upcomingAssignments: Flow<List<Assignment>> = assignmentDao.getUpcomingAssignments()
+    val completedAssignments: Flow<List<Assignment>> = assignmentDao.getCompletedAssignments()
 
     suspend fun insert(assignment: Assignment) {
-        assignmentDao.insertAssignment(assignment)
+        assignmentDao.upsertAssignment(assignment)
     }
 
     suspend fun update(assignment: Assignment) {

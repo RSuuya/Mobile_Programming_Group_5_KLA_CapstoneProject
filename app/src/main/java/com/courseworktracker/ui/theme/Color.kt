@@ -9,3 +9,9 @@ val Pink80 = Color(0xFFEFB8C8)
 val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
+
+// Ndejje University Colors
+val NdejjePurple = Color(0xFF512DA8)
+val NdejjeGold = Color(0xFFFFD700)
+val NdejjeLightPurple = Color(0xFFD1C4E9)
+val NdejjeDarkPurple = Color(0xFF311B92)

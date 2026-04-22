@@ -18,6 +18,7 @@ object Screen {
     const val Register = "register"
     const val Home = "home"
     const val AddAssignment = "add_assignment"
+    const val CoordinatorUpload = "coordinator_upload"
 }
 
 @Composable
@@ -38,7 +39,8 @@ fun CourseworkTrackerApp() {
                         navController.navigate(Screen.Home) {
                             popUpTo(Screen.Login) { inclusive = true }
                         }
-                    }
+                    },
+                    onNavigateToCoordinator = { navController.navigate(Screen.CoordinatorUpload) }
                 )
             }
             composable(Screen.Register) {
@@ -65,6 +67,13 @@ fun CourseworkTrackerApp() {
                         viewModel.insert(Assignment(title = title, courseCode = code, dueDate = date, isCompleted = false))
                         navController.popBackStack()
                     },
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable(Screen.CoordinatorUpload) {
+                val viewModel: AssignmentViewModel = viewModel(factory = viewModelFactory)
+                CoordinatorUploadScreen(
+                    viewModel = viewModel,
                     onBack = { navController.popBackStack() }
                 )
             }

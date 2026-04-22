@@ -1,0 +1,19 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    <!-- Simplified placeholder for Ndejje University Logo -->
+    <path
+        android:fillColor="#512DA8"
+        android:pathData="M100,20 L160,50 L160,130 L100,180 L40,130 L40,50 Z" />
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M100,40 L140,60 L140,120 L100,160 L60,120 L60,60 Z" />
+    <path
+        android:fillColor="#512DA8"
+        android:pathData="M95,70 L105,70 L105,100 L130,100 L130,110 L105,110 L105,140 L95,140 L95,110 L70,110 L70,100 L95,100 Z" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M80,55 L120,55 L120,65 L80,65 Z" />
+</vector>
