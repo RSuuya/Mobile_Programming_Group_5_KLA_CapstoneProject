@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -20,15 +21,19 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddAssignmentScreen(
-    onSave: (String, String, Date) -> Unit,
+    onSave: (String, String, String, Date) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var title by remember { mutableStateOf("") }
     var selectedCourse by remember { mutableStateOf("") }
+    var lecturer by remember { mutableStateOf("") }
     var selectedDate by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var showDatePicker by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
+    
+    var titleError by remember { mutableStateOf(false) }
+    var courseError by remember { mutableStateOf(false) }
 
     val courses = listOf(
         "BCS2201 - Mobile App Dev",
@@ -92,8 +97,15 @@ fun AddAssignmentScreen(
             // Assignment Title
             OutlinedTextField(
                 value = title,
-                onValueChange = { title = it },
+                onValueChange = { 
+                    title = it
+                    titleError = false
+                },
                 label = { Text(stringResource(id = R.string.assignment_title)) },
+                isError = titleError,
+                supportingText = {
+                    if (titleError) Text("Title is required", color = MaterialTheme.colorScheme.error)
+                },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -107,6 +119,10 @@ fun AddAssignmentScreen(
                     onValueChange = {},
                     readOnly = true,
                     label = { Text(stringResource(id = R.string.course_code)) },
+                    isError = courseError,
+                    supportingText = {
+                        if (courseError) Text("Please select a course", color = MaterialTheme.colorScheme.error)
+                    },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                     modifier = Modifier
                         .menuAnchor(MenuAnchorType.PrimaryNotEditable)
@@ -121,12 +137,22 @@ fun AddAssignmentScreen(
                             text = { Text(course) },
                             onClick = {
                                 selectedCourse = course
+                                courseError = false
                                 expanded = false
                             }
                         )
                     }
                 }
             }
+
+            // Lecturer Name
+            OutlinedTextField(
+                value = lecturer,
+                onValueChange = { lecturer = it },
+                label = { Text("Lecturer Name") },
+                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+                modifier = Modifier.fillMaxWidth()
+            )
 
             // Date Picker Field
             OutlinedTextField(
@@ -148,8 +174,11 @@ fun AddAssignmentScreen(
 
             Button(
                 onClick = {
-                    if (title.isNotBlank() && selectedCourse.isNotBlank()) {
-                        onSave(title, selectedCourse.split(" - ")[0], Date(selectedDate))
+                    titleError = title.isBlank()
+                    courseError = selectedCourse.isBlank()
+                    
+                    if (!titleError && !courseError) {
+                        onSave(title, selectedCourse.split(" - ")[0], lecturer, Date(selectedDate))
                     }
                 },
                 modifier = Modifier
@@ -167,6 +196,6 @@ fun AddAssignmentScreen(
 @Composable
 fun AddAssignmentPreview() {
     NdejjeCourseworkTrackerTheme {
-        AddAssignmentScreen(onSave = { _, _, _ -> }, onBack = {})
+        AddAssignmentScreen(onSave = { _, _, _, _ -> }, onBack = {})
     }
 }

@@ -18,7 +18,7 @@ object Screen {
     const val Register = "register"
     const val Home = "home"
     const val AddAssignment = "add_assignment"
-    const val CoordinatorUpload = "coordinator_upload"
+    const val CoordinatorDashboard = "coordinator_dashboard"
 }
 
 @Composable
@@ -35,19 +35,20 @@ fun CourseworkTrackerApp() {
             composable(Screen.Login) {
                 LoginScreen(
                     onNavigateToRegister = { navController.navigate(Screen.Register) },
-                    onLoginSuccess = { 
-                        navController.navigate(Screen.Home) {
+                    onLoginSuccess = { isCoordinator ->
+                        val destination = if (isCoordinator) Screen.CoordinatorDashboard else Screen.Home
+                        navController.navigate(destination) {
                             popUpTo(Screen.Login) { inclusive = true }
                         }
-                    },
-                    onNavigateToCoordinator = { navController.navigate(Screen.CoordinatorUpload) }
+                    }
                 )
             }
             composable(Screen.Register) {
                 RegisterScreen(
                     onNavigateToLogin = { navController.navigate(Screen.Login) },
-                    onRegisterSuccess = { 
-                        navController.navigate(Screen.Home) {
+                    onRegisterSuccess = { isCoordinator ->
+                        val destination = if (isCoordinator) Screen.CoordinatorDashboard else Screen.Home
+                        navController.navigate(destination) {
                             popUpTo(Screen.Register) { inclusive = true }
                         }
                     }
@@ -57,24 +58,39 @@ fun CourseworkTrackerApp() {
                 val viewModel: AssignmentViewModel = viewModel(factory = viewModelFactory)
                 HomeScreen(
                     viewModel = viewModel,
-                    onAddAssignment = { navController.navigate(Screen.AddAssignment) }
+                    onAddAssignment = { navController.navigate(Screen.AddAssignment) },
+                    onLogout = {
+                        navController.navigate(Screen.Login) {
+                            popUpTo(Screen.Home) { inclusive = true }
+                        }
+                    }
                 )
             }
             composable(Screen.AddAssignment) {
                 val viewModel: AssignmentViewModel = viewModel(factory = viewModelFactory)
                 AddAssignmentScreen(
-                    onSave = { title, code, date ->
-                        viewModel.insert(Assignment(title = title, courseCode = code, dueDate = date, isCompleted = false))
+                    onSave = { title, code, lecturer, date ->
+                        viewModel.insert(Assignment(
+                            title = title, 
+                            courseCode = code, 
+                            lecturer = lecturer, 
+                            dueDate = date, 
+                            isCompleted = false
+                        ))
                         navController.popBackStack()
                     },
                     onBack = { navController.popBackStack() }
                 )
             }
-            composable(Screen.CoordinatorUpload) {
+            composable(Screen.CoordinatorDashboard) {
                 val viewModel: AssignmentViewModel = viewModel(factory = viewModelFactory)
-                CoordinatorUploadScreen(
+                CoordinatorDashboardScreen(
                     viewModel = viewModel,
-                    onBack = { navController.popBackStack() }
+                    onLogout = {
+                        navController.navigate(Screen.Login) {
+                            popUpTo(Screen.CoordinatorDashboard) { inclusive = true }
+                        }
+                    }
                 )
             }
         }

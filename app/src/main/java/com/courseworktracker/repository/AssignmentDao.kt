@@ -18,11 +18,11 @@ interface AssignmentDao {
     fun getAllAssignments(): Flow<List<Assignment>>
 
     @Upsert
-    suspend fun upsertAssignment(assignment: Assignment)
+    suspend fun upsertAssignment(assignment: Assignment): Long
 
     @Update
-    suspend fun updateAssignment(assignment: Assignment)
+    suspend fun updateAssignment(assignment: Assignment): Int
 
     @Delete
-    suspend fun deleteAssignment(assignment: Assignment)
+    suspend fun deleteAssignment(assignment: Assignment): Int
 }

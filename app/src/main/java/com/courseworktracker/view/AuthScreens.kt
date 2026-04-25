@@ -69,11 +69,11 @@ fun TrackerTextField(
 @Composable
 fun LoginScreen(
     onNavigateToRegister: () -> Unit,
-    onLoginSuccess: () -> Unit,
-    onNavigateToCoordinator: () -> Unit
+    onLoginSuccess: (Boolean) -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Box(
         modifier = Modifier
@@ -129,23 +129,44 @@ fun LoginScreen(
 
             TrackerTextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = { 
+                    email = it
+                    errorMessage = null
+                },
                 label = stringResource(id = R.string.email_label),
                 icon = Icons.Default.Email
             )
             Spacer(modifier = Modifier.height(16.dp))
             TrackerTextField(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = { 
+                    password = it
+                    errorMessage = null
+                },
                 label = stringResource(id = R.string.password_label),
                 icon = Icons.Default.Lock,
                 isPassword = true
             )
 
+            errorMessage?.let {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = onLoginSuccess,
+                onClick = { 
+                    if (email.isBlank() || password.isBlank()) {
+                        errorMessage = "Please enter both email and password"
+                    } else {
+                        onLoginSuccess(email.contains("coordinator", ignoreCase = true))
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -161,34 +182,24 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                TextButton(onClick = onNavigateToRegister) {
-                    Text(
-                        stringResource(id = R.string.register_prompt),
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-                TextButton(onClick = onNavigateToCoordinator) {
-                    Text(
-                        "Coordinator Login",
-                        color = MaterialTheme.colorScheme.secondary,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
+            TextButton(onClick = onNavigateToRegister) {
+                Text(
+                    stringResource(id = R.string.register_prompt),
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
         }
     }
 }
 
 @Composable
-fun RegisterScreen(onNavigateToLogin: () -> Unit, onRegisterSuccess: () -> Unit) {
+fun RegisterScreen(onNavigateToLogin: () -> Unit, onRegisterSuccess: (Boolean) -> Unit) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var isCoordinator by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Box(
         modifier = Modifier
@@ -238,30 +249,71 @@ fun RegisterScreen(onNavigateToLogin: () -> Unit, onRegisterSuccess: () -> Unit)
 
             TrackerTextField(
                 value = name,
-                onValueChange = { name = it },
+                onValueChange = { 
+                    name = it
+                    errorMessage = null
+                },
                 label = stringResource(id = R.string.full_name_label),
                 icon = Icons.Default.Person
             )
             Spacer(modifier = Modifier.height(16.dp))
             TrackerTextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = { 
+                    email = it
+                    errorMessage = null
+                },
                 label = stringResource(id = R.string.email_label),
                 icon = Icons.Default.Email
             )
             Spacer(modifier = Modifier.height(16.dp))
             TrackerTextField(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = { 
+                    password = it
+                    errorMessage = null
+                },
                 label = stringResource(id = R.string.password_label),
                 icon = Icons.Default.Lock,
                 isPassword = true
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Checkbox(
+                    checked = isCoordinator,
+                    onCheckedChange = { isCoordinator = it }
+                )
+                Text(
+                    text = "Register as Coordinator",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            errorMessage?.let {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             Button(
-                onClick = onRegisterSuccess,
+                onClick = { 
+                    if (name.isBlank() || email.isBlank() || password.isBlank()) {
+                        errorMessage = "Please fill in all fields"
+                    } else {
+                        onRegisterSuccess(isCoordinator)
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -292,7 +344,7 @@ fun RegisterScreen(onNavigateToLogin: () -> Unit, onRegisterSuccess: () -> Unit)
 @Composable
 fun LoginPreview() {
     NdejjeCourseworkTrackerTheme(dynamicColor = false) {
-        LoginScreen(onNavigateToRegister = {}, onLoginSuccess = {}, onNavigateToCoordinator = {})
+        LoginScreen(onNavigateToRegister = {}, onLoginSuccess = {})
     }
 }
 
