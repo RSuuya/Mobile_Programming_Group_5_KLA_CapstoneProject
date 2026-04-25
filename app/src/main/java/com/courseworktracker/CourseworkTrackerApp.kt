@@ -35,19 +35,20 @@ fun CourseworkTrackerApp() {
             composable(Screen.Login) {
                 LoginScreen(
                     onNavigateToRegister = { navController.navigate(Screen.Register) },
-                    onLoginSuccess = { 
-                        navController.navigate(Screen.Home) {
+                    onLoginSuccess = { isCoordinator ->
+                        val destination = if (isCoordinator) Screen.CoordinatorUpload else Screen.Home
+                        navController.navigate(destination) {
                             popUpTo(Screen.Login) { inclusive = true }
                         }
-                    },
-                    onNavigateToCoordinator = { navController.navigate(Screen.CoordinatorUpload) }
+                    }
                 )
             }
             composable(Screen.Register) {
                 RegisterScreen(
                     onNavigateToLogin = { navController.navigate(Screen.Login) },
-                    onRegisterSuccess = { 
-                        navController.navigate(Screen.Home) {
+                    onRegisterSuccess = { isCoordinator ->
+                        val destination = if (isCoordinator) Screen.CoordinatorUpload else Screen.Home
+                        navController.navigate(destination) {
                             popUpTo(Screen.Register) { inclusive = true }
                         }
                     }
@@ -63,8 +64,14 @@ fun CourseworkTrackerApp() {
             composable(Screen.AddAssignment) {
                 val viewModel: AssignmentViewModel = viewModel(factory = viewModelFactory)
                 AddAssignmentScreen(
-                    onSave = { title, code, date ->
-                        viewModel.insert(Assignment(title = title, courseCode = code, dueDate = date, isCompleted = false))
+                    onSave = { title, code, lecturer, date ->
+                        viewModel.insert(Assignment(
+                            title = title, 
+                            courseCode = code, 
+                            lecturer = lecturer, 
+                            dueDate = date, 
+                            isCompleted = false
+                        ))
                         navController.popBackStack()
                     },
                     onBack = { navController.popBackStack() }

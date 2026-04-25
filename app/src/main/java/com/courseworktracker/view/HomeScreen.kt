@@ -10,15 +10,12 @@ import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Dashboard
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -83,6 +80,8 @@ fun HomeContent(
                 val activeAssignments = assignments.filter { !it.isCompleted }
                 DashboardContent(
                     assignments = activeAssignments,
+                    totalCount = assignments.size,
+                    completedCount = assignments.count { it.isCompleted },
                     onAddAssignment = onAddAssignment,
                     onCompleteAssignment = onCompleteAssignment,
                     modifier = Modifier.padding(innerPadding)
@@ -186,8 +185,20 @@ fun ArchiveContent(
 @Composable
 fun HomePreview() {
     val sampleAssignments = listOf(
-        Assignment(1, "Mobile App Development", "CS101", Date(), false),
-        Assignment(2, "Database Systems", "CS102", Date(), true)
+        Assignment(
+            id = 1,
+            title = "Mobile App Development",
+            courseCode = "CS101",
+            dueDate = Date(),
+            isCompleted = false
+        ),
+        Assignment(
+            id = 2,
+            title = "Database Systems",
+            courseCode = "CS102",
+            dueDate = Date(),
+            isCompleted = true
+        )
     )
     NdejjeCourseworkTrackerTheme(dynamicColor = false) {
         HomeContent(
