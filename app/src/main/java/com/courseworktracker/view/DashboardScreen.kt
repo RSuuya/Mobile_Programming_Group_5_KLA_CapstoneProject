@@ -4,7 +4,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -38,7 +40,8 @@ import java.util.concurrent.TimeUnit
 fun DashboardScreen(
     viewModel: AssignmentViewModel,
     onAddAssignment: () -> Unit,
-    onLogout: () -> Unit = {}
+    onLogout: () -> Unit = {},
+    userName: String = "Student"
 ) {
     val assignments by viewModel.allAssignments.collectAsState(initial = emptyList())
     val activeAssignments = assignments.filter { !it.isCompleted }
@@ -53,7 +56,8 @@ fun DashboardScreen(
         onCompleteAssignment = { assignment ->
             viewModel.update(assignment.copy(isCompleted = true))
         },
-        onLogout = onLogout
+        onLogout = onLogout,
+        userName = userName
     )
 }
 
@@ -63,6 +67,7 @@ fun TrackerTopAppBar(
     title: String,
     subtitle: String,
     modifier: Modifier = Modifier,
+    userName: String = "User",
     onLogout: () -> Unit = {},
     showLogout: Boolean = true,
     hasNewCoordinatorTask: Boolean = false
@@ -72,22 +77,28 @@ fun TrackerTopAppBar(
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(12.dp),
                     color = Color.White,
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(52.dp)
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.ndejje_logo),
                         contentDescription = null,
-                        modifier = Modifier.padding(4.dp)
+                        modifier = Modifier.padding(6.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(16.dp))
                 Column {
                     Text(
                         text = title,
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.ExtraBold
+                    )
+                    Text(
+                        text = userName,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = subtitle,
@@ -135,14 +146,19 @@ fun DashboardContent(
     onAddAssignment: () -> Unit,
     onCompleteAssignment: (Assignment) -> Unit,
     modifier: Modifier = Modifier,
-    onLogout: () -> Unit = {}
+    onLogout: () -> Unit = {},
+    userName: String = "User"
 ) {
+    val listState = rememberLazyListState()
+    val isExpanded by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TrackerTopAppBar(
                 title = "Ndejje Tracker",
                 subtitle = "Faculty of Computing",
+                userName = userName,
                 onLogout = onLogout,
                 hasNewCoordinatorTask = assignments.any { it.isFromCoordinator && !it.isCompleted }
             )
@@ -150,6 +166,7 @@ fun DashboardContent(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onAddAssignment,
+                expanded = isExpanded,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = RoundedCornerShape(16.dp),
@@ -163,6 +180,7 @@ fun DashboardContent(
             totalCount = totalCount,
             completedCount = completedCount,
             onCompleteAssignment = onCompleteAssignment,
+            listState = listState,
             modifier = Modifier.padding(innerPadding)
         )
     }
@@ -174,7 +192,8 @@ fun DashboardBody(
     totalCount: Int,
     completedCount: Int,
     onCompleteAssignment: (Assignment) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    listState: LazyListState = rememberLazyListState()
 ) {
     Column(
         modifier = modifier.fillMaxSize()
@@ -184,24 +203,45 @@ fun DashboardBody(
         if (assignments.isEmpty()) {
             EmptyDashboardState()
         } else {
+            val grouped = assignments.groupBy { 
+                val diff = it.dueDate.time - System.currentTimeMillis()
+                val days = TimeUnit.MILLISECONDS.toDays(diff)
+                when {
+                    diff < 0 -> "Overdue"
+                    days < 1 -> "Due Today"
+                    days < 3 -> "Upcoming"
+                    else -> "Later"
+                }
+            }
+
             LazyColumn(
+                state = listState,
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                item {
-                    Text(
-                        text = stringResource(id = R.string.upcoming_deadlines),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                }
-                items(assignments) { assignment ->
-                    AssignmentCard(
-                        assignment = assignment,
-                        onComplete = { onCompleteAssignment(assignment) }
-                    )
+                listOf("Overdue", "Due Today", "Upcoming", "Later").forEach { category ->
+                    grouped[category]?.let { categoryAssignments ->
+                        item {
+                            Text(
+                                text = category,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = when(category) {
+                                    "Overdue" -> MaterialTheme.colorScheme.error
+                                    "Due Today" -> Color(0xFFFB8C00)
+                                    else -> MaterialTheme.colorScheme.primary
+                                },
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+                        }
+                        items(categoryAssignments) { assignment ->
+                            AssignmentCard(
+                                assignment = assignment,
+                                onComplete = { onCompleteAssignment(assignment) }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -393,7 +433,7 @@ fun CountdownTimer(dueDate: Date) {
         val seconds = TimeUnit.MILLISECONDS.toSeconds(timeLeft) % 60
 
         Text(
-            text = String.format("%dd %02dh %02dm %02ds left", days, hours, minutes, seconds),
+            text = String.format(Locale.getDefault(), "%dd %02dh %02dm %02ds left", days, hours, minutes, seconds),
             style = MaterialTheme.typography.labelSmall,
             color = if (days < 1) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold

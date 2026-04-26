@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Assignment
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material3.*
@@ -23,6 +22,7 @@ import java.util.*
 @Composable
 fun CoordinatorDashboardScreen(
     viewModel: AssignmentViewModel,
+    userName: String = "Coordinator",
     onLogout: () -> Unit = {}
 ) {
     var selectedItem by remember { mutableIntStateOf(0) }
@@ -37,6 +37,7 @@ fun CoordinatorDashboardScreen(
             TrackerTopAppBar(
                 title = if (selectedItem == 0) "Coordinator Panel" else "Manage Tasks",
                 subtitle = if (selectedItem == 0) "Broadcast Assignments" else "View All Submissions",
+                userName = userName,
                 onLogout = onLogout
             )
         },

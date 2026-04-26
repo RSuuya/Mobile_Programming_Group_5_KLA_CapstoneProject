@@ -1,8 +1,7 @@
 package com.courseworktracker
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.*
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -10,8 +9,6 @@ import com.courseworktracker.model.Assignment
 import com.courseworktracker.ui.theme.NdejjeCourseworkTrackerTheme
 import com.courseworktracker.view.*
 import com.courseworktracker.viewmodel.AssignmentViewModel
-import com.courseworktracker.viewmodel.AssignmentViewModelFactory
-import java.util.Date
 
 object Screen {
     const val Login = "login"
@@ -23,19 +20,27 @@ object Screen {
 
 @Composable
 fun CourseworkTrackerApp() {
-    val context = LocalContext.current
-    val application = context.applicationContext as CourseworkTrackerApplication
-    val repository = application.repository
-    val viewModelFactory = AssignmentViewModelFactory(repository)
-    
     val navController = rememberNavController()
-    
+    val viewModel: AssignmentViewModel = hiltViewModel()
+    val userPrefs by viewModel.userPreferences.collectAsState()
+
+    // Determine start destination based on login state
+    val startDestination = if (userPrefs.isLoggedIn) {
+        if (userPrefs.isCoordinator) Screen.CoordinatorDashboard else Screen.Home
+    } else {
+        Screen.Login
+    }
+
     NdejjeCourseworkTrackerTheme {
-        NavHost(navController = navController, startDestination = Screen.Login) {
+        NavHost(
+            navController = navController, 
+            startDestination = startDestination
+        ) {
             composable(Screen.Login) {
                 LoginScreen(
                     onNavigateToRegister = { navController.navigate(Screen.Register) },
-                    onLoginSuccess = { isCoordinator ->
+                    onLoginSuccess = { isCoordinator, name ->
+                        viewModel.updateLoginState(name, isCoordinator, true)
                         val destination = if (isCoordinator) Screen.CoordinatorDashboard else Screen.Home
                         navController.navigate(destination) {
                             popUpTo(Screen.Login) { inclusive = true }
@@ -46,7 +51,8 @@ fun CourseworkTrackerApp() {
             composable(Screen.Register) {
                 RegisterScreen(
                     onNavigateToLogin = { navController.navigate(Screen.Login) },
-                    onRegisterSuccess = { isCoordinator ->
+                    onRegisterSuccess = { isCoordinator, name ->
+                        viewModel.updateLoginState(name, isCoordinator, true)
                         val destination = if (isCoordinator) Screen.CoordinatorDashboard else Screen.Home
                         navController.navigate(destination) {
                             popUpTo(Screen.Register) { inclusive = true }
@@ -55,11 +61,12 @@ fun CourseworkTrackerApp() {
                 )
             }
             composable(Screen.Home) {
-                val viewModel: AssignmentViewModel = viewModel(factory = viewModelFactory)
                 HomeScreen(
                     viewModel = viewModel,
+                    userName = userPrefs.userName,
                     onAddAssignment = { navController.navigate(Screen.AddAssignment) },
                     onLogout = {
+                        viewModel.logout()
                         navController.navigate(Screen.Login) {
                             popUpTo(Screen.Home) { inclusive = true }
                         }
@@ -67,7 +74,6 @@ fun CourseworkTrackerApp() {
                 )
             }
             composable(Screen.AddAssignment) {
-                val viewModel: AssignmentViewModel = viewModel(factory = viewModelFactory)
                 AddAssignmentScreen(
                     onSave = { title, code, lecturer, date ->
                         viewModel.insert(Assignment(
@@ -83,10 +89,11 @@ fun CourseworkTrackerApp() {
                 )
             }
             composable(Screen.CoordinatorDashboard) {
-                val viewModel: AssignmentViewModel = viewModel(factory = viewModelFactory)
                 CoordinatorDashboardScreen(
                     viewModel = viewModel,
+                    userName = userPrefs.userName,
                     onLogout = {
+                        viewModel.logout()
                         navController.navigate(Screen.Login) {
                             popUpTo(Screen.CoordinatorDashboard) { inclusive = true }
                         }

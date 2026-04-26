@@ -10,22 +10,21 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.FileUpload
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.courseworktracker.model.Assignment
-import com.courseworktracker.ui.theme.NdejjeCourseworkTrackerTheme
 import com.courseworktracker.viewmodel.AssignmentViewModel
-import java.util.Date
 
 @Composable
 fun HomeScreen(
     viewModel: AssignmentViewModel,
+    userName: String = "Student",
     onAddAssignment: () -> Unit,
     isCoordinator: Boolean = false,
     onLogout: () -> Unit = {}
@@ -35,6 +34,7 @@ fun HomeScreen(
     HomeContent(
         assignments = assignments,
         viewModel = viewModel,
+        userName = userName,
         onAddAssignment = onAddAssignment,
         onLogout = onLogout,
         isCoordinator = isCoordinator,
@@ -44,10 +44,12 @@ fun HomeScreen(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeContent(
     assignments: List<Assignment>,
     viewModel: AssignmentViewModel,
+    userName: String,
     onAddAssignment: () -> Unit,
     onCompleteAssignment: (Assignment) -> Unit,
     modifier: Modifier = Modifier,
@@ -55,6 +57,7 @@ fun HomeContent(
     isCoordinator: Boolean = false
 ) {
     var selectedItem by remember { mutableIntStateOf(0) }
+    var searchQuery by remember { mutableStateOf("") }
     
     val items = if (isCoordinator) {
         listOf("Dashboard", "Archive", "Coordinator")
@@ -71,19 +74,36 @@ fun HomeContent(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            TrackerTopAppBar(
-                title = when (selectedItem) {
-                    0 -> "Ndejje Tracker"
-                    1 -> "Performance"
-                    else -> "Coordinator Panel"
-                },
-                subtitle = when (selectedItem) {
-                    0 -> "Faculty of Computing"
-                    1 -> "Completed Coursework"
-                    else -> "Broadcast Assignments"
-                },
-                onLogout = onLogout
-            )
+            Column {
+                TrackerTopAppBar(
+                    title = when (selectedItem) {
+                        0 -> "Ndejje Tracker"
+                        1 -> "Performance"
+                        else -> "Coordinator Panel"
+                    },
+                    subtitle = when (selectedItem) {
+                        0 -> "Faculty of Computing"
+                        1 -> "Completed Coursework"
+                        else -> "Broadcast Assignments"
+                    },
+                    userName = userName,
+                    onLogout = onLogout
+                )
+                if (selectedItem == 0) {
+                    SearchBar(
+                        query = searchQuery,
+                        onQueryChange = { searchQuery = it },
+                        onSearch = {},
+                        active = false,
+                        onActiveChange = {},
+                        placeholder = { Text("Search assignments or codes...") },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {}
+                }
+            }
         },
         bottomBar = {
             NavigationBar(
@@ -118,9 +138,14 @@ fun HomeContent(
             }
         }
     ) { innerPadding ->
+        val filteredAssignments = assignments.filter { 
+            it.title.contains(searchQuery, ignoreCase = true) || 
+            it.courseCode.contains(searchQuery, ignoreCase = true)
+        }
+
         when (selectedItem) {
             0 -> {
-                val activeAssignments = assignments.filter { !it.isCompleted }
+                val activeAssignments = filteredAssignments.filter { !it.isCompleted }
                 DashboardBody(
                     assignments = activeAssignments,
                     totalCount = assignments.size,
@@ -130,7 +155,7 @@ fun HomeContent(
                 )
             }
             1 -> {
-                val archivedAssignments = assignments.filter { it.isCompleted }
+                val archivedAssignments = filteredAssignments.filter { it.isCompleted }
                 ArchiveBody(
                     assignments = archivedAssignments,
                     modifier = Modifier.padding(innerPadding)
@@ -182,30 +207,5 @@ fun ArchiveBody(
                 AssignmentCard(assignment)
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun HomePreview() {
-    val sampleAssignments = listOf(
-        Assignment(
-            id = 1,
-            title = "Mobile App Development",
-            courseCode = "CS101",
-            dueDate = Date(),
-            isCompleted = false
-        ),
-        Assignment(
-            id = 2,
-            title = "Database Systems",
-            courseCode = "CS102",
-            dueDate = Date(),
-            isCompleted = true
-        )
-    )
-    NdejjeCourseworkTrackerTheme(dynamicColor = false) {
-        // Updated preview to pass dummy ViewModel or just use a mock state if needed
-        // For simplicity, we just show the structure
     }
 }
