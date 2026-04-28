@@ -19,6 +19,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeTopAppBar
@@ -92,8 +94,19 @@ fun HomeContent(
                 tonalElevation = 8.dp
             ) {
                 items.forEachIndexed { index, item ->
+                    val activeCount = assignments.count { !it.isCompleted }
                     NavigationBarItem(
-                        icon = { Icon(icons[index], contentDescription = item) },
+                        icon = {
+                            if (index == 0 && activeCount > 0) {
+                                BadgedBox(
+                                    badge = { Badge { Text("$activeCount") } }
+                                ) {
+                                    Icon(icons[index], contentDescription = item)
+                                }
+                            } else {
+                                Icon(icons[index], contentDescription = item)
+                            }
+                        },
                         label = { Text(item, fontWeight = FontWeight.Medium) },
                         selected = selectedItem == index,
                         onClick = { selectedItem = index },
