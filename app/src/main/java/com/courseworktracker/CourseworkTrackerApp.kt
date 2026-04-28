@@ -31,7 +31,7 @@ fun CourseworkTrackerApp() {
         Screen.Login
     }
 
-    NdejjeCourseworkTrackerTheme {
+    NdejjeCourseworkTrackerTheme (darkTheme = userPrefs.isDarkMode){
         NavHost(
             navController = navController, 
             startDestination = startDestination
@@ -64,6 +64,8 @@ fun CourseworkTrackerApp() {
                 HomeScreen(
                     viewModel = viewModel,
                     userName = userPrefs.userName,
+                    isDarkMode = userPrefs.isDarkMode,
+                    onToggleDarkMode = { viewModel.toggleDarkMode() },
                     onAddAssignment = { navController.navigate(Screen.AddAssignment) },
                     onLogout = {
                         viewModel.logout()

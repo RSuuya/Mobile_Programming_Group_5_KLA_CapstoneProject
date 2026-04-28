@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
+private val DARK_MODE_KEY = booleanPreferencesKey("dark_mode")
 class UserPreferencesRepository @Inject constructor(
     private val dataStore: DataStore<Preferences>
 ) {
@@ -23,7 +24,8 @@ class UserPreferencesRepository @Inject constructor(
             UserPreferences(
                 userName = preferences[PreferencesKeys.USER_NAME] ?: "Student",
                 isCoordinator = preferences[PreferencesKeys.IS_COORDINATOR] ?: false,
-                isLoggedIn = preferences[PreferencesKeys.IS_LOGGED_IN] ?: false
+                isLoggedIn = preferences[PreferencesKeys.IS_LOGGED_IN] ?: false,
+                isDarkMode = prefs[DARK_MODE_KEY] ?: false
             )
         }
 
@@ -32,6 +34,12 @@ class UserPreferencesRepository @Inject constructor(
             preferences[PreferencesKeys.USER_NAME] = userName
             preferences[PreferencesKeys.IS_COORDINATOR] = isCoordinator
             preferences[PreferencesKeys.IS_LOGGED_IN] = isLoggedIn
+        }
+    }
+    suspend fun toggleDarkMode(isDarkMode: Boolean) {
+        // if using DataStore:
+        dataStore.edit { prefs ->
+            prefs[DARK_MODE_KEY] = isDarkMode
         }
     }
 
@@ -43,5 +51,6 @@ class UserPreferencesRepository @Inject constructor(
 data class UserPreferences(
     val userName: String,
     val isCoordinator: Boolean,
-    val isLoggedIn: Boolean
+    val isLoggedIn: Boolean,
+    val isDarkMode: Boolean = false
 )

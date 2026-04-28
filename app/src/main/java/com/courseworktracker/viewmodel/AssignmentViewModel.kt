@@ -45,6 +45,12 @@ class AssignmentViewModel @Inject constructor(
         }
     }
 
+    fun toggleDarkMode() {
+        viewModelScope.launch {
+            val current = userPreferences.value.isDarkMode
+            userPreferencesRepository.toggleDarkMode(!current)
+        }
+    }
     fun insert(assignment: Assignment) = viewModelScope.launch {
         repository.insert(assignment)
     }

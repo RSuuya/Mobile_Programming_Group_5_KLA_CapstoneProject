@@ -55,6 +55,8 @@ import java.util.Date
 fun HomeScreen(
     viewModel: AssignmentViewModel,
     userName: String,
+    isDarkMode: Boolean = false,
+    onToggleDarkMode: () -> Unit = {},
     onAddAssignment: () -> Unit,
     onLogout: () -> Unit
 ) {
