@@ -63,6 +63,7 @@ fun HomeScreen(
         userName = userName,
         onAddAssignment = onAddAssignment,
         onLogout = onLogout,
+        onDeleteAssignment = { assignment -> viewModel.delete(assignment) },
         onCompleteAssignment = { assignment ->
             viewModel.update(assignment.copy(isCompleted = true))
         }
@@ -74,6 +75,7 @@ fun HomeContent(
     assignments: List<Assignment>,
     onAddAssignment: () -> Unit,
     onCompleteAssignment: (Assignment) -> Unit,
+    onDeleteAssignment: (Assignment) -> Unit = {},
     modifier: Modifier = Modifier,
     userName: String = "Student",
     onLogout: () -> Unit = {}
@@ -114,6 +116,7 @@ fun HomeContent(
                     completedCount = assignments.count { it.isCompleted },
                     onAddAssignment = onAddAssignment,
                     onCompleteAssignment = onCompleteAssignment,
+                    onDeleteAssignment = onDeleteAssignment,
                     userName = userName,
                     onLogout = onLogout,
                     modifier = Modifier.padding(innerPadding)

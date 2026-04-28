@@ -14,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -145,6 +146,7 @@ fun DashboardContent(
     completedCount: Int,
     onAddAssignment: () -> Unit,
     onCompleteAssignment: (Assignment) -> Unit,
+    onDeleteAssignment: (Assignment) -> Unit = {},
     modifier: Modifier = Modifier,
     onLogout: () -> Unit = {},
     userName: String = "User"
@@ -180,6 +182,7 @@ fun DashboardContent(
             totalCount = totalCount,
             completedCount = completedCount,
             onCompleteAssignment = onCompleteAssignment,
+            onDeleteAssignment = onDeleteAssignment,
             listState = listState,
             modifier = Modifier.padding(innerPadding)
         )
@@ -192,6 +195,7 @@ fun DashboardBody(
     totalCount: Int,
     completedCount: Int,
     onCompleteAssignment: (Assignment) -> Unit,
+    onDeleteAssignment: (Assignment) -> Unit = {},
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState()
 ) {
@@ -238,7 +242,8 @@ fun DashboardBody(
                         items(categoryAssignments) { assignment ->
                             AssignmentCard(
                                 assignment = assignment,
-                                onComplete = { onCompleteAssignment(assignment) }
+                                onComplete = { onCompleteAssignment(assignment) },
+                                onDelete = { onDeleteAssignment(assignment) }
                             )
                         }
                     }
@@ -329,93 +334,137 @@ fun EmptyDashboardState() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AssignmentCard(
     assignment: Assignment,
-    onComplete: (() -> Unit)? = null
+    onComplete: (() -> Unit)? = null,
+    onDelete: (() -> Unit)? = null        // ✅ new param
 ) {
-    val deadlineColor = getDeadlineColor(assignment.dueDate)
-    val dateFormat = SimpleDateFormat("EEE, MMM dd 'at' HH:mm", Locale.getDefault())
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) {
+                onDelete?.invoke()
+                true
+            } else false
+        }
+    )
 
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+    SwipeToDismissBox(
+        state = dismissState,
+        enableDismissFromStartToEnd = false,   // only left swipe
+        backgroundContent = {
+            // Red background revealed on swipe
             Box(
                 modifier = Modifier
-                    .width(6.dp)
-                    .height(60.dp)
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(deadlineColor)
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = assignment.courseCode,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = assignment.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        painterResource(id = android.R.drawable.ic_menu_myplaces),
-                        contentDescription = null,
-                        modifier = Modifier.size(14.dp),
-                        tint = if (deadlineColor == MaterialTheme.colorScheme.error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Column {
-                        Text(
-                            text = dateFormat.format(assignment.dueDate),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (deadlineColor == MaterialTheme.colorScheme.error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        if (!assignment.isCompleted) {
-                            CountdownTimer(assignment.dueDate)
-                        }
-                    }
-                }
-            }
-
-            if (onComplete != null && !assignment.isCompleted) {
-                IconButton(
-                    onClick = onComplete,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f))
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(MaterialTheme.colorScheme.errorContainer),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Row(
+                    modifier = Modifier.padding(end = 24.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    Text(
+                        text = "Delete",
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        fontWeight = FontWeight.Bold
+                    )
                     Icon(
-                        Icons.Default.CheckCircle,
-                        contentDescription = "Complete",
-                        tint = MaterialTheme.colorScheme.primary
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete",
+                        tint = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
         }
-    }
-}
+    ) {
 
-@Composable
+        val deadlineColor = getDeadlineColor(assignment.dueDate)
+        val dateFormat = SimpleDateFormat("EEE, MMM dd 'at' HH:mm", Locale.getDefault())
+
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(6.dp)
+                        .height(60.dp)
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(deadlineColor)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = assignment.courseCode,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = assignment.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painterResource(id = android.R.drawable.ic_menu_myplaces),
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = if (deadlineColor == MaterialTheme.colorScheme.error)
+                                MaterialTheme.colorScheme.error
+                            else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Column {
+                            Text(
+                                text = dateFormat.format(assignment.dueDate),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (deadlineColor == MaterialTheme.colorScheme.error)
+                                    MaterialTheme.colorScheme.error
+                                else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            if (!assignment.isCompleted) {
+                                CountdownTimer(assignment.dueDate)
+                            }
+                        }
+                    }
+                }
+                if (onComplete != null && !assignment.isCompleted) {
+                    IconButton(
+                        onClick = onComplete,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f))
+                    ) {
+                        Icon(
+                            Icons.Default.CheckCircle,
+                            contentDescription = "Complete",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+        }
+    }
+}@Composable
 fun CountdownTimer(dueDate: Date) {
     var timeLeft by remember { mutableLongStateOf(dueDate.time - System.currentTimeMillis()) }
 
