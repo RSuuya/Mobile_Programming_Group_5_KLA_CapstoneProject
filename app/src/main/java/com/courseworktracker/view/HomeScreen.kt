@@ -65,6 +65,8 @@ fun HomeScreen(
     HomeContent(
         assignments = assignments,
         userName = userName,
+        isDarkMode = isDarkMode,
+        onToggleDarkMode = onToggleDarkMode,
         onAddAssignment = onAddAssignment,
         onLogout = onLogout,
         onDeleteAssignment = { assignment -> viewModel.delete(assignment) },
@@ -80,6 +82,8 @@ fun HomeContent(
     onAddAssignment: () -> Unit,
     onCompleteAssignment: (Assignment) -> Unit,
     onDeleteAssignment: (Assignment) -> Unit = {},
+    isDarkMode: Boolean = false,
+    onToggleDarkMode: () -> Unit = {},
     modifier: Modifier = Modifier,
     userName: String = "Student",
     onLogout: () -> Unit = {}
@@ -134,6 +138,8 @@ fun HomeContent(
                     onDeleteAssignment = onDeleteAssignment,
                     userName = userName,
                     onLogout = onLogout,
+                    isDarkMode = isDarkMode,
+                    onToggleDarkMode = onToggleDarkMode,
                     modifier = Modifier.padding(innerPadding)
                 )
             }

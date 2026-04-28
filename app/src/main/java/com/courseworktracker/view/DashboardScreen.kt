@@ -14,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
@@ -37,6 +38,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 
@@ -77,7 +79,9 @@ fun TrackerTopAppBar(
     showLogout: Boolean = true,
     hasNewCoordinatorTask: Boolean = false,
     selectedFilter: AssignmentFilter = AssignmentFilter.ALL,
-    onFilterSelected: (AssignmentFilter) -> Unit = {}
+    onFilterSelected: (AssignmentFilter) -> Unit = {},
+    isDarkMode: Boolean = false,           // ✅ add
+    onToggleDarkMode: () -> Unit = {}
 ) {
     LargeTopAppBar(
         modifier = modifier,
@@ -116,7 +120,7 @@ fun TrackerTopAppBar(
             }
         },
         actions = {
-            // ✅ add this block
+            //   this block contains actions
             var expanded by remember { mutableStateOf(false) }
             Box {
                 IconButton(onClick = { expanded = true }) {
@@ -185,6 +189,16 @@ fun TrackerTopAppBar(
                     )
                 }
             }
+            // ✅ add dark mode toggle here
+            IconButton(onClick = onToggleDarkMode) {
+                Icon(
+                    imageVector = if (isDarkMode) Icons.Default.LightMode
+                    else Icons.Default.DarkMode,
+                    contentDescription = if (isDarkMode) "Switch to light mode"
+                    else "Switch to dark mode",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
             if (showLogout) {
                 IconButton(onClick = onLogout) {
                     Icon(
@@ -212,7 +226,9 @@ fun DashboardContent(
     onDeleteAssignment: (Assignment) -> Unit = {},
     modifier: Modifier = Modifier,
     onLogout: () -> Unit = {},
-    userName: String = "User"
+    userName: String = "User",
+    isDarkMode: Boolean = false,           // ✅ add
+    onToggleDarkMode: () -> Unit = {}
 ) {
     val listState = rememberLazyListState()
     val isExpanded by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
@@ -238,8 +254,11 @@ fun DashboardContent(
                 userName = userName,
                 onLogout = onLogout,
                 hasNewCoordinatorTask = assignments.any { it.isFromCoordinator && !it.isCompleted },
-                selectedFilter = selectedFilter,
-                onFilterSelected = { selectedFilter = it }
+                isDarkMode = isDarkMode,
+                onToggleDarkMode = onToggleDarkMode,
+                        selectedFilter = selectedFilter,
+                onFilterSelected = { selectedFilter = it },
+
             )
         },
         floatingActionButton = {
