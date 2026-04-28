@@ -14,6 +14,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.courseworktracker.R
+import com.courseworktracker.model.Assignment
 import com.courseworktracker.ui.theme.NdejjeCourseworkTrackerTheme
 import java.text.SimpleDateFormat
 import java.util.*
@@ -23,12 +24,13 @@ import java.util.*
 fun AddAssignmentScreen(
     onSave: (String, String, String, Date) -> Unit,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    existingAssignment: Assignment? = null
 ) {
-    var title by remember { mutableStateOf("") }
-    var selectedCourse by remember { mutableStateOf("") }
-    var lecturer by remember { mutableStateOf("") }
-    var selectedDate by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    var title by remember { mutableStateOf(existingAssignment?.title ?: "") }
+    var selectedCourse by remember { mutableStateOf(existingAssignment?.courseCode ?: "") }
+    var lecturer by remember { mutableStateOf(existingAssignment?.lecturer ?: "") }
+    var selectedDate by remember { mutableLongStateOf(existingAssignment?.dueDate?.time ?: System.currentTimeMillis()) }
     var showDatePicker by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
     
@@ -71,7 +73,8 @@ fun AddAssignmentScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = stringResource(id = R.string.add_coursework)) },
+                title = { Text( text = if (existingAssignment != null) "Edit Coursework"
+                        else stringResource(id = R.string.add_coursework)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -186,7 +189,9 @@ fun AddAssignmentScreen(
                     .height(56.dp),
                 shape = MaterialTheme.shapes.medium
             ) {
-                Text(stringResource(id = R.string.save_button))
+                Text(
+                    if (existingAssignment != null) "Update"
+                        else stringResource(id = R.string.save_button))
             }
         }
     }
