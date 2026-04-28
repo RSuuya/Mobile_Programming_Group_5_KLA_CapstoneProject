@@ -60,7 +60,9 @@ fun HomeScreen(
     
     HomeContent(
         assignments = assignments,
+        userName = userName,
         onAddAssignment = onAddAssignment,
+        onLogout = onLogout,
         onCompleteAssignment = { assignment ->
             viewModel.update(assignment.copy(isCompleted = true))
         }
@@ -72,7 +74,9 @@ fun HomeContent(
     assignments: List<Assignment>,
     onAddAssignment: () -> Unit,
     onCompleteAssignment: (Assignment) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    userName: String = "Student",
+    onLogout: () -> Unit = {}
 ) {
     var selectedItem by remember { mutableIntStateOf(0) }
     val items = listOf("Dashboard", "Archive")
@@ -110,6 +114,8 @@ fun HomeContent(
                     completedCount = assignments.count { it.isCompleted },
                     onAddAssignment = onAddAssignment,
                     onCompleteAssignment = onCompleteAssignment,
+                    userName = userName,
+                    onLogout = onLogout,
                     modifier = Modifier.padding(innerPadding)
                 )
             }
