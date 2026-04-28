@@ -36,7 +36,11 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 
+enum class AssignmentFilter { ALL, OVERDUE, UPCOMING }
 @Composable
 fun DashboardScreen(
     viewModel: AssignmentViewModel,
@@ -71,7 +75,9 @@ fun TrackerTopAppBar(
     userName: String = "User",
     onLogout: () -> Unit = {},
     showLogout: Boolean = true,
-    hasNewCoordinatorTask: Boolean = false
+    hasNewCoordinatorTask: Boolean = false,
+    selectedFilter: AssignmentFilter = AssignmentFilter.ALL,
+    onFilterSelected: (AssignmentFilter) -> Unit = {}
 ) {
     LargeTopAppBar(
         modifier = modifier,
@@ -110,6 +116,63 @@ fun TrackerTopAppBar(
             }
         },
         actions = {
+            // ✅ add this block
+            var expanded by remember { mutableStateOf(false) }
+            Box {
+                IconButton(onClick = { expanded = true }) {
+                    Icon(
+                        Icons.Default.FilterList,
+                        contentDescription = "Filter",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                "All",
+                                fontWeight = if (selectedFilter == AssignmentFilter.ALL)
+                                    FontWeight.Bold else FontWeight.Normal
+                            )
+                        },
+                        onClick = {
+                            onFilterSelected(AssignmentFilter.ALL)
+                            expanded = false
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                "Overdue",
+                                fontWeight = if (selectedFilter == AssignmentFilter.OVERDUE)
+                                    FontWeight.Bold else FontWeight.Normal,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        },
+                        onClick = {
+                            onFilterSelected(AssignmentFilter.OVERDUE)
+                            expanded = false
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                "Upcoming",
+                                fontWeight = if (selectedFilter == AssignmentFilter.UPCOMING)
+                                    FontWeight.Bold else FontWeight.Normal,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        onClick = {
+                            onFilterSelected(AssignmentFilter.UPCOMING)
+                            expanded = false
+                        }
+                    )
+                }
+            }
             if (hasNewCoordinatorTask) {
                 BadgedBox(
                     badge = { Badge { Text("!") } },
@@ -153,6 +216,18 @@ fun DashboardContent(
 ) {
     val listState = rememberLazyListState()
     val isExpanded by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
+    var selectedFilter by remember { mutableStateOf(AssignmentFilter.ALL) }
+
+    //   apply filter to assignments before passing to body
+    val filteredAssignments = when (selectedFilter) {
+        AssignmentFilter.ALL -> assignments
+        AssignmentFilter.OVERDUE -> assignments.filter {
+            it.dueDate.time < System.currentTimeMillis()
+        }
+        AssignmentFilter.UPCOMING -> assignments.filter {
+            it.dueDate.time >= System.currentTimeMillis()
+        }
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -162,7 +237,9 @@ fun DashboardContent(
                 subtitle = "Faculty of Computing",
                 userName = userName,
                 onLogout = onLogout,
-                hasNewCoordinatorTask = assignments.any { it.isFromCoordinator && !it.isCompleted }
+                hasNewCoordinatorTask = assignments.any { it.isFromCoordinator && !it.isCompleted },
+                selectedFilter = selectedFilter,
+                onFilterSelected = { selectedFilter = it }
             )
         },
         floatingActionButton = {
@@ -178,7 +255,7 @@ fun DashboardContent(
         }
     ) { innerPadding ->
         DashboardBody(
-            assignments = assignments,
+            assignments = filteredAssignments,
             totalCount = totalCount,
             completedCount = completedCount,
             onCompleteAssignment = onCompleteAssignment,
