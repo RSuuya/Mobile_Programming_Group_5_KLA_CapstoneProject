@@ -15,9 +15,11 @@ object Screen {
     const val Register = "register"
     const val Home = "home"
     const val AddAssignment = "add_assignment"
+
+    const val EditAssignment = "edit_assignment/{assignmentId}"
     const val CoordinatorDashboard = "coordinator_dashboard"
 }
-
+fun editAssignmentRoute(id: Int) = "edit_assignment/$id"
 @Composable
 fun CourseworkTrackerApp() {
     val navController = rememberNavController()
@@ -66,7 +68,9 @@ fun CourseworkTrackerApp() {
                     userName = userPrefs.userName,
                     isDarkMode = userPrefs.isDarkMode,
                     onToggleDarkMode = { viewModel.toggleDarkMode() },
-                    onAddAssignment = { navController.navigate(Screen.AddAssignment) },
+                    onAddAssignment = { assignment ->
+                        navController.navigate(editAssignmentRoute(assignment.id))
+                                      },
                     onLogout = {
                         viewModel.logout()
                         navController.navigate(Screen.Login) {
@@ -101,6 +105,29 @@ fun CourseworkTrackerApp() {
                         }
                     }
                 )
+            }
+            composable(Screen.EditAssignment) { backStackEntry ->
+                val assignmentId = backStackEntry.arguments?.getString("assignmentId")?.toIntOrNull()
+                val assignments by viewModel.allAssignments.collectAsState()
+                val assignment = assignments.find { it.id == assignmentId }
+
+                if (assignment != null) {
+                    AddAssignmentScreen(
+                        existingAssignment = assignment,
+                        onSave = { title, code, lecturer, date ->
+                            viewModel.update(
+                                assignment.copy(
+                                    title = title,
+                                    courseCode = code,
+                                    lecturer = lecturer,
+                                    dueDate = date
+                                )
+                            )
+                            navController.popBackStack()
+                        },
+                        onBack = { navController.popBackStack() }
+                    )
+                }
             }
         }
     }

@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -224,6 +225,7 @@ fun DashboardContent(
     onAddAssignment: () -> Unit,
     onCompleteAssignment: (Assignment) -> Unit,
     onDeleteAssignment: (Assignment) -> Unit = {},
+    onEditAssignment: (Assignment) -> Unit = {},
     modifier: Modifier = Modifier,
     onLogout: () -> Unit = {},
     userName: String = "User",
@@ -279,6 +281,7 @@ fun DashboardContent(
             completedCount = completedCount,
             onCompleteAssignment = onCompleteAssignment,
             onDeleteAssignment = onDeleteAssignment,
+            onEditAssignment = onEditAssignment,
             listState = listState,
             modifier = Modifier.padding(innerPadding)
         )
@@ -292,6 +295,7 @@ fun DashboardBody(
     completedCount: Int,
     onCompleteAssignment: (Assignment) -> Unit,
     onDeleteAssignment: (Assignment) -> Unit = {},
+    onEditAssignment: (Assignment) -> Unit = {},
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState()
 ) {
@@ -339,7 +343,8 @@ fun DashboardBody(
                             AssignmentCard(
                                 assignment = assignment,
                                 onComplete = { onCompleteAssignment(assignment) },
-                                onDelete = { onDeleteAssignment(assignment) }
+                                onDelete = { onDeleteAssignment(assignment) },
+                                onEdit = { onEditAssignment(assignment) }
                             )
                         }
                     }
@@ -435,7 +440,8 @@ fun EmptyDashboardState() {
 fun AssignmentCard(
     assignment: Assignment,
     onComplete: (() -> Unit)? = null,
-    onDelete: (() -> Unit)? = null        // ✅ new param
+    onDelete: (() -> Unit)? = null,
+    onEdit: (() -> Unit)? = null
 ) {
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
@@ -542,6 +548,23 @@ fun AssignmentCard(
                         }
                     }
                 }
+                if (onEdit != null && !assignment.isCompleted) {
+                    IconButton(
+                        onClick = onEdit,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f))
+                    ) {
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = "Edit",
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                }
+
                 if (onComplete != null && !assignment.isCompleted) {
                     IconButton(
                         onClick = onComplete,
