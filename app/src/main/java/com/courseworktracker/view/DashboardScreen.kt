@@ -579,10 +579,10 @@ private fun getDeadlineColor(dueDate: Date): Color {
     val diff = dueDate.time - System.currentTimeMillis()
     val days = TimeUnit.MILLISECONDS.toDays(diff)
     return when {
-        diff < 0 -> MaterialTheme.colorScheme.outline
-        days < 1 -> MaterialTheme.colorScheme.error
-        days < 3 -> Color(0xFFFB8C00) // Deep Orange - Consider adding to theme
-        else -> Color(0xFF43A047) // Dark Green - Consider adding to theme
+        diff < 0 -> MaterialTheme.colorScheme.outline  // Overdue
+        days < 1 -> MaterialTheme.colorScheme.error    // Due today = RED ✅
+        days < 3 -> Color(0xFFFB8C00)                  // Within 3 days = Orange ✅
+        else -> Color(0xFF43A047)                       // Later = Green
     }
 }
 
