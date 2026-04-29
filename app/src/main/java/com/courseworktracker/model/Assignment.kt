@@ -4,6 +4,10 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.util.Date
 
+enum class Priority {
+    LOW, MEDIUM, HIGH
+}
+
 @Entity(tableName = "assignments")
 data class Assignment(
     @PrimaryKey(autoGenerate = true)
@@ -14,6 +18,6 @@ data class Assignment(
     val dueDate: Date,
     val notes: String = "",
     val isCompleted: Boolean = false,
-    val priorityColor: String = "#4CAF50", // Default Green
+    val priority: Priority = Priority.MEDIUM,
     val isFromCoordinator: Boolean = false
 )
