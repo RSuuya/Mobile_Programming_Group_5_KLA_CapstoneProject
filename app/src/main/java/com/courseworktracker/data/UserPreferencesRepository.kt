@@ -25,7 +25,7 @@ class UserPreferencesRepository @Inject constructor(
                 userName = preferences[PreferencesKeys.USER_NAME] ?: "Student",
                 isCoordinator = preferences[PreferencesKeys.IS_COORDINATOR] ?: false,
                 isLoggedIn = preferences[PreferencesKeys.IS_LOGGED_IN] ?: false,
-                isDarkMode = prefs[DARK_MODE_KEY] ?: false
+                isDarkMode = preferences[DARK_MODE_KEY] ?: false
             )
         }
 
@@ -37,9 +37,8 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
     suspend fun toggleDarkMode(isDarkMode: Boolean) {
-        // if using DataStore:
-        dataStore.edit { prefs ->
-            prefs[DARK_MODE_KEY] = isDarkMode
+        dataStore.edit { preferences ->
+            preferences[DARK_MODE_KEY] = isDarkMode
         }
     }
 

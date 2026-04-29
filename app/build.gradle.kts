@@ -36,8 +36,10 @@ android {
     buildFeatures {
         compose = true
     }
-    kotlinOptions {
-        jvmTarget = "11"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        }
     }
 }
 
@@ -74,6 +76,8 @@ dependencies {
 
     // WorkManager
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.hilt.ext.work)
+    ksp(libs.hilt.ext.compiler)
 
     implementation(libs.androidx.glance.preview)
     testImplementation(libs.junit)
