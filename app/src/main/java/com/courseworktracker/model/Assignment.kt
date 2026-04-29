@@ -12,6 +12,7 @@ data class Assignment(
     val courseCode: String,
     val lecturer: String = "",
     val dueDate: Date,
+    val notes: String = "",
     val isCompleted: Boolean = false,
     val priorityColor: String = "#4CAF50", // Default Green
     val isFromCoordinator: Boolean = false

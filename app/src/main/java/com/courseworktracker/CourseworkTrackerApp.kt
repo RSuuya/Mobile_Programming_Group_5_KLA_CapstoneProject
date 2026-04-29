@@ -82,12 +82,13 @@ fun CourseworkTrackerApp() {
             }
             composable(Screen.AddAssignment) {
                 AddAssignmentScreen(
-                    onSave = { title, code, lecturer, date ->
+                    onSave = { title, code, lecturer, date, notes ->
                         viewModel.insert(Assignment(
                             title = title, 
                             courseCode = code, 
                             lecturer = lecturer, 
-                            dueDate = date, 
+                            dueDate = date,
+                            notes = notes,
                             isCompleted = false
                         ))
                         navController.popBackStack()
@@ -115,13 +116,14 @@ fun CourseworkTrackerApp() {
                 if (assignment != null) {
                     AddAssignmentScreen(
                         existingAssignment = assignment,
-                        onSave = { title, code, lecturer, date ->
+                        onSave = { title, code, lecturer, date, notes ->
                             viewModel.update(
                                 assignment.copy(
                                     title = title,
                                     courseCode = code,
                                     lecturer = lecturer,
-                                    dueDate = date
+                                    dueDate = date,
+                                    notes = notes
                                 )
                             )
                             navController.popBackStack()

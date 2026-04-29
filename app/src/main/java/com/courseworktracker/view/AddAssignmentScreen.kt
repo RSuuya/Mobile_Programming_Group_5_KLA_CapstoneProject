@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,7 +23,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddAssignmentScreen(
-    onSave: (String, String, String, Date) -> Unit,
+    onSave: (String, String, String, Date, String) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     existingAssignment: Assignment? = null
@@ -31,6 +32,7 @@ fun AddAssignmentScreen(
     var selectedCourse by remember { mutableStateOf(existingAssignment?.courseCode ?: "") }
     var lecturer by remember { mutableStateOf(existingAssignment?.lecturer ?: "") }
     var selectedDate by remember { mutableLongStateOf(existingAssignment?.dueDate?.time ?: System.currentTimeMillis()) }
+    var notes by remember { mutableStateOf(existingAssignment?.notes ?: "") }
     var showDatePicker by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
     
@@ -173,6 +175,18 @@ fun AddAssignmentScreen(
                     .clickable { showDatePicker = true }
             )
 
+            // Notes field
+            OutlinedTextField(
+                value = notes,
+                onValueChange = { notes = it },
+                label = { Text("Requirements / Notes") },
+                leadingIcon = { Icon(Icons.Default.Notes, contentDescription = null) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp),
+                minLines = 3
+            )
+
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
@@ -181,7 +195,7 @@ fun AddAssignmentScreen(
                     courseError = selectedCourse.isBlank()
                     
                     if (!titleError && !courseError) {
-                        onSave(title, selectedCourse.split(" - ")[0], lecturer, Date(selectedDate))
+                        onSave(title, selectedCourse.split(" - ")[0], lecturer, Date(selectedDate), notes)
                     }
                 },
                 modifier = Modifier
@@ -201,6 +215,6 @@ fun AddAssignmentScreen(
 @Composable
 fun AddAssignmentPreview() {
     NdejjeCourseworkTrackerTheme {
-        AddAssignmentScreen(onSave = { _, _, _, _ -> }, onBack = {})
+        AddAssignmentScreen(onSave = { _, _, _, _, _ -> }, onBack = {})
     }
 }

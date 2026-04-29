@@ -1,7 +1,9 @@
 package com.courseworktracker.view
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -11,9 +13,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -24,9 +28,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.courseworktracker.R
@@ -81,7 +87,7 @@ fun TrackerTopAppBar(
     hasNewCoordinatorTask: Boolean = false,
     selectedFilter: AssignmentFilter = AssignmentFilter.ALL,
     onFilterSelected: (AssignmentFilter) -> Unit = {},
-    isDarkMode: Boolean = false,           // ✅ add
+    isDarkMode: Boolean = false,
     onToggleDarkMode: () -> Unit = {}
 ) {
     LargeTopAppBar(
@@ -121,7 +127,6 @@ fun TrackerTopAppBar(
             }
         },
         actions = {
-            //   this block contains actions
             var expanded by remember { mutableStateOf(false) }
             Box {
                 IconButton(onClick = { expanded = true }) {
@@ -190,7 +195,6 @@ fun TrackerTopAppBar(
                     )
                 }
             }
-            // ✅ add dark mode toggle here
             IconButton(onClick = onToggleDarkMode) {
                 Icon(
                     imageVector = if (isDarkMode) Icons.Default.LightMode
@@ -229,14 +233,13 @@ fun DashboardContent(
     modifier: Modifier = Modifier,
     onLogout: () -> Unit = {},
     userName: String = "User",
-    isDarkMode: Boolean = false,           // ✅ add
+    isDarkMode: Boolean = false,
     onToggleDarkMode: () -> Unit = {}
 ) {
     val listState = rememberLazyListState()
     val isExpanded by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
     var selectedFilter by remember { mutableStateOf(AssignmentFilter.ALL) }
 
-    //   apply filter to assignments before passing to body
     val filteredAssignments = when (selectedFilter) {
         AssignmentFilter.ALL -> assignments
         AssignmentFilter.OVERDUE -> assignments.filter {
@@ -258,7 +261,7 @@ fun DashboardContent(
                 hasNewCoordinatorTask = assignments.any { it.isFromCoordinator && !it.isCompleted },
                 isDarkMode = isDarkMode,
                 onToggleDarkMode = onToggleDarkMode,
-                        selectedFilter = selectedFilter,
+                selectedFilter = selectedFilter,
                 onFilterSelected = { selectedFilter = it },
 
             )
@@ -443,6 +446,9 @@ fun AssignmentCard(
     onDelete: (() -> Unit)? = null,
     onEdit: (() -> Unit)? = null
 ) {
+    var expanded by remember { mutableStateOf(false) }
+    val clipboardManager = LocalClipboardManager.current
+    
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
             if (value == SwipeToDismissBoxValue.EndToStart) {
@@ -454,9 +460,8 @@ fun AssignmentCard(
 
     SwipeToDismissBox(
         state = dismissState,
-        enableDismissFromStartToEnd = false,   // only left swipe
+        enableDismissFromStartToEnd = false,
         backgroundContent = {
-            // Red background revealed on swipe
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -484,106 +489,166 @@ fun AssignmentCard(
             }
         }
     ) {
-
         val deadlineColor = getDeadlineColor(assignment.dueDate)
         val dateFormat = SimpleDateFormat("EEE, MMM dd 'at' HH:mm", Locale.getDefault())
 
         ElevatedCard(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .animateContentSize()
+                .clickable { expanded = !expanded },
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.elevatedCardColors(
                 containerColor = MaterialTheme.colorScheme.surface
             ),
             elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
+            Column {
+                Row(
                     modifier = Modifier
-                        .width(6.dp)
-                        .height(60.dp)
-                        .clip(RoundedCornerShape(3.dp))
-                        .background(deadlineColor)
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = assignment.courseCode,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .width(6.dp)
+                            .height(60.dp)
+                            .clip(RoundedCornerShape(3.dp))
+                            .background(deadlineColor)
                     )
-                    Text(
-                        text = assignment.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            painterResource(id = android.R.drawable.ic_menu_myplaces),
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp),
-                            tint = if (deadlineColor == MaterialTheme.colorScheme.error)
-                                MaterialTheme.colorScheme.error
-                            else MaterialTheme.colorScheme.onSurfaceVariant
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = assignment.courseCode,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Column {
-                            Text(
-                                text = dateFormat.format(assignment.dueDate),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = if (deadlineColor == MaterialTheme.colorScheme.error)
+                        Text(
+                            text = assignment.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = if (expanded) Int.MAX_VALUE else 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                painterResource(id = android.R.drawable.ic_menu_myplaces),
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp),
+                                tint = if (deadlineColor == MaterialTheme.colorScheme.error)
                                     MaterialTheme.colorScheme.error
                                 else MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            if (!assignment.isCompleted) {
-                                CountdownTimer(assignment.dueDate)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Column {
+                                Text(
+                                    text = dateFormat.format(assignment.dueDate),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (deadlineColor == MaterialTheme.colorScheme.error)
+                                        MaterialTheme.colorScheme.error
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                if (!assignment.isCompleted) {
+                                    CountdownTimer(assignment.dueDate)
+                                }
                             }
                         }
                     }
-                }
-                if (onEdit != null && !assignment.isCompleted) {
-                    IconButton(
-                        onClick = onEdit,
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f))
-                    ) {
-                        Icon(
-                            Icons.Default.Edit,
-                            contentDescription = "Edit",
-                            tint = MaterialTheme.colorScheme.secondary
-                        )
+                    if (onEdit != null && !assignment.isCompleted) {
+                        IconButton(
+                            onClick = onEdit,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f))
+                        ) {
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = "Edit",
+                                tint = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(4.dp))
                     }
-                    Spacer(modifier = Modifier.width(4.dp))
-                }
 
-                if (onComplete != null && !assignment.isCompleted) {
-                    IconButton(
-                        onClick = onComplete,
+                    if (onComplete != null && !assignment.isCompleted) {
+                        IconButton(
+                            onClick = onComplete,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f))
+                        ) {
+                            Icon(
+                                Icons.Default.CheckCircle,
+                                contentDescription = "Complete",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
+                
+                if (expanded && assignment.notes.isNotEmpty()) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        thickness = 0.5.dp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+                    )
+                    Column(
                         modifier = Modifier
-                            .size(48.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f))
+                            .padding(16.dp)
+                            .fillMaxWidth()
                     ) {
-                        Icon(
-                            Icons.Default.CheckCircle,
-                            contentDescription = "Complete",
-                            tint = MaterialTheme.colorScheme.primary
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.Notes,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Notes",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            IconButton(
+                                onClick = { clipboardManager.setText(AnnotatedString(assignment.notes)) },
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.ContentCopy,
+                                    contentDescription = "Copy Notes",
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = assignment.notes,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                         )
                     }
                 }
             }
         }
     }
-}@Composable
+}
+@Composable
 fun CountdownTimer(dueDate: Date) {
     var timeLeft by remember { mutableLongStateOf(dueDate.time - System.currentTimeMillis()) }
 

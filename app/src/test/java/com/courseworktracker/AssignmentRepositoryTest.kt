@@ -30,7 +30,7 @@ class AssignmentRepositoryTest {
 
     @Test
     fun getAllAssignments_returnsFlowFromDao() = runBlocking<Unit> {
-        val assignments = listOf(Assignment(1, "Test", "CS101", "Lecturer", Date(), false))
+        val assignments = listOf(Assignment(1, "Test", "CS101", "Lecturer", Date(), "Notes", false))
         whenever(assignmentDao.getAllAssignments()).thenReturn(flowOf(assignments))
 
         val result = repository.allAssignments.take(1).toList().first()
@@ -39,7 +39,7 @@ class AssignmentRepositoryTest {
 
     @Test
     fun insert_callsDaoInsert() = runBlocking<Unit> {
-        val assignment = Assignment(1, "Test", "CS101", "Lecturer", Date(), false)
+        val assignment = Assignment(1, "Test", "CS101", "Lecturer", Date(), "Notes", false)
         repository.insert(assignment)
         verify(assignmentDao).upsertAssignment(assignment)
     }

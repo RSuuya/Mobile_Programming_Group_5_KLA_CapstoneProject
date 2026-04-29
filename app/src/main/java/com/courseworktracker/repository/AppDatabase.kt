@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.courseworktracker.model.Assignment
 
-@Database(entities = [Assignment::class], version = 3, exportSchema = false)
+@Database(entities = [Assignment::class], version = 4, exportSchema = false)
 @TypeConverters(DateConverter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun assignmentDao(): AssignmentDao
