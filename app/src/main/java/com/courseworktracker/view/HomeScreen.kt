@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -18,16 +19,22 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -49,6 +56,7 @@ import com.courseworktracker.R
 import com.courseworktracker.model.Assignment
 import com.courseworktracker.ui.theme.NdejjeCourseworkTrackerTheme
 import com.courseworktracker.viewmodel.AssignmentViewModel
+import com.courseworktracker.viewmodel.CourseworkFilter
 import java.util.Date
 
 @Composable
@@ -61,12 +69,20 @@ fun HomeScreen(
     onEditAssignment: (Assignment) -> Unit = {},
     onLogout: () -> Unit
 ) {
-    val assignments by viewModel.allAssignments.collectAsState()
+    val assignments by viewModel.filteredAssignments.collectAsState()
+    val allAssignments by viewModel.allAssignments.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val courseworkFilter by viewModel.courseworkFilter.collectAsState()
     
     HomeContent(
         assignments = assignments,
+        allAssignments = allAssignments,
         userName = userName,
         isDarkMode = isDarkMode,
+        searchQuery = searchQuery,
+        onSearchQueryChange = { viewModel.onSearchQueryChange(it) },
+        courseworkFilter = courseworkFilter,
+        onFilterChange = { viewModel.onFilterChange(it) },
         onToggleDarkMode = onToggleDarkMode,
         onAddAssignment = onAddAssignment,
         onEditAssignment = onEditAssignment,
@@ -81,11 +97,16 @@ fun HomeScreen(
 @Composable
 fun HomeContent(
     assignments: List<Assignment>,
+    allAssignments: List<Assignment>,
     onAddAssignment: () -> Unit,
     onCompleteAssignment: (Assignment) -> Unit,
     onDeleteAssignment: (Assignment) -> Unit = {},
     onEditAssignment: (Assignment) -> Unit = {},
     isDarkMode: Boolean = false,
+    searchQuery: String = "",
+    onSearchQueryChange: (String) -> Unit = {},
+    courseworkFilter: CourseworkFilter = CourseworkFilter.ALL,
+    onFilterChange: (CourseworkFilter) -> Unit = {},
     onToggleDarkMode: () -> Unit = {},
     modifier: Modifier = Modifier,
     userName: String = "Student",
@@ -103,7 +124,7 @@ fun HomeContent(
                 tonalElevation = 8.dp
             ) {
                 items.forEachIndexed { index, item ->
-                    val activeCount = assignments.count { !it.isCompleted }
+                    val activeCount = allAssignments.count { !it.isCompleted }
                     NavigationBarItem(
                         icon = {
                             if (index == 0 && activeCount > 0) {
@@ -129,31 +150,91 @@ fun HomeContent(
             }
         }
     ) { innerPadding ->
-        when (selectedItem) {
-            0 -> {
-                val activeAssignments = assignments.filter { !it.isCompleted }
-                DashboardContent(
-                    assignments = activeAssignments,
-                    totalCount = assignments.size,
-                    completedCount = assignments.count { it.isCompleted },
-                    onAddAssignment = onAddAssignment,
-                    onCompleteAssignment = onCompleteAssignment,
-                    onDeleteAssignment = onDeleteAssignment,
-                    onEditAssignment = onEditAssignment,
-                    userName = userName,
-                    onLogout = onLogout,
-                    isDarkMode = isDarkMode,
-                    onToggleDarkMode = onToggleDarkMode,
-                    modifier = Modifier.padding(innerPadding)
-                )
+        Column(modifier = Modifier.padding(innerPadding)) {
+            SearchBar(
+                query = searchQuery,
+                onQueryChange = onSearchQueryChange,
+                modifier = Modifier.padding(16.dp)
+            )
+            
+            FilterChips(
+                selectedFilter = courseworkFilter,
+                onFilterChange = onFilterChange,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+
+            when (selectedItem) {
+                0 -> {
+                    val activeAssignments = assignments.filter { !it.isCompleted }
+                    DashboardContent(
+                        assignments = activeAssignments,
+                        totalCount = allAssignments.size,
+                        completedCount = allAssignments.count { it.isCompleted },
+                        onAddAssignment = onAddAssignment,
+                        onCompleteAssignment = onCompleteAssignment,
+                        onDeleteAssignment = onDeleteAssignment,
+                        onEditAssignment = onEditAssignment,
+                        userName = userName,
+                        onLogout = onLogout,
+                        isDarkMode = isDarkMode,
+                        onToggleDarkMode = onToggleDarkMode
+                    )
+                }
+                1 -> {
+                    val archivedAssignments = assignments.filter { it.isCompleted }
+                    ArchiveContent(
+                        assignments = archivedAssignments
+                    )
+                }
             }
-            1 -> {
-                val archivedAssignments = assignments.filter { it.isCompleted }
-                ArchiveContent(
-                    assignments = archivedAssignments,
-                    modifier = Modifier.padding(innerPadding)
-                )
+        }
+    }
+}
+
+@Composable
+fun SearchBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = modifier.fillMaxWidth(),
+        placeholder = { Text("Search coursework...") },
+        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(Icons.Default.Close, contentDescription = "Clear")
+                }
             }
+        },
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+        ),
+        singleLine = true
+    )
+}
+
+@Composable
+fun FilterChips(
+    selectedFilter: CourseworkFilter,
+    onFilterChange: (CourseworkFilter) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        CourseworkFilter.values().forEach { filter ->
+            FilterChip(
+                selected = selectedFilter == filter,
+                onClick = { onFilterChange(filter) },
+                label = { Text(filter.name.lowercase().replaceFirstChar { it.uppercase() }) }
+            )
         }
     }
 }
@@ -219,7 +300,7 @@ fun ArchiveContent(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "No archived tasks",
+                        text = "No coursework found",
                         style = MaterialTheme.typography.titleMedium,
                         color = Color.Gray
                     )
@@ -258,18 +339,12 @@ fun HomePreview() {
             courseCode = "CS102",
             dueDate = Date(),
             isCompleted = true
-        ),
-                Assignment(
-                id = 3,
-        title = "E-commerce",
-        courseCode = "CS103",
-        dueDate = Date(),
-        isCompleted = true
-    )
+        )
     )
     NdejjeCourseworkTrackerTheme(dynamicColor = false) {
         HomeContent(
             assignments = sampleAssignments,
+            allAssignments = sampleAssignments,
             onAddAssignment = {},
             onCompleteAssignment = {}
         )
