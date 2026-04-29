@@ -14,7 +14,7 @@
     <dimen name="spacer_height">8dp</dimen>
 
     <!-- Hex Colors (Requested in dimens.xml per project instructions) -->
-    <item name="primary_color" type="color">#620pEE</item>
+    <item name="primary_color" type="color">#6200EE</item>
     <item name="secondary_color" type="color">#03DAC6</item>
     <item name="background_color" type="color">#F5F5F5</item>
     <item name="surface_color" type="color">#FFFF0F</item>
