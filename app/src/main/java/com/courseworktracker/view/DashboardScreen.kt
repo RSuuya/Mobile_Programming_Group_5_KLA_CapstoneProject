@@ -16,6 +16,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DarkMode
@@ -54,6 +55,7 @@ enum class AssignmentFilter { ALL, OVERDUE, UPCOMING }
 fun DashboardScreen(
     viewModel: AssignmentViewModel,
     onAddAssignment: () -> Unit,
+    onManageCourses: () -> Unit = {},
     onLogout: () -> Unit = {},
     userName: String = "Student"
 ) {
@@ -67,6 +69,7 @@ fun DashboardScreen(
         totalCount = totalCount,
         completedCount = completedCount,
         onAddAssignment = onAddAssignment,
+        onManageCourses = onManageCourses,
         onCompleteAssignment = { assignment ->
             viewModel.update(assignment.copy(isCompleted = true))
         },
@@ -83,6 +86,7 @@ fun TrackerTopAppBar(
     modifier: Modifier = Modifier,
     userName: String = "User",
     onLogout: () -> Unit = {},
+    onManageCourses: () -> Unit = {},
     showLogout: Boolean = true,
     hasNewCoordinatorTask: Boolean = false,
     selectedFilter: AssignmentFilter = AssignmentFilter.ALL,
@@ -127,6 +131,13 @@ fun TrackerTopAppBar(
             }
         },
         actions = {
+            IconButton(onClick = onManageCourses) {
+                Icon(
+                    imageVector = Icons.Default.Book,
+                    contentDescription = "Manage Courses",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
             var expanded by remember { mutableStateOf(false) }
             Box {
                 IconButton(onClick = { expanded = true }) {
@@ -230,6 +241,7 @@ fun DashboardContent(
     onCompleteAssignment: (Assignment) -> Unit,
     onDeleteAssignment: (Assignment) -> Unit = {},
     onEditAssignment: (Assignment) -> Unit = {},
+    onManageCourses: () -> Unit = {},
     modifier: Modifier = Modifier,
     onLogout: () -> Unit = {},
     userName: String = "User",
@@ -258,6 +270,7 @@ fun DashboardContent(
                 subtitle = "Faculty of Computing",
                 userName = userName,
                 onLogout = onLogout,
+                onManageCourses = onManageCourses,
                 hasNewCoordinatorTask = assignments.any { it.isFromCoordinator && !it.isCompleted },
                 isDarkMode = isDarkMode,
                 onToggleDarkMode = onToggleDarkMode,

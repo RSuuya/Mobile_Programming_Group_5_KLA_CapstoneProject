@@ -68,6 +68,7 @@ fun HomeScreen(
     onToggleDarkMode: () -> Unit = {},
     onAddAssignment: () -> Unit,
     onEditAssignment: (Assignment) -> Unit = {},
+    onManageCourses: () -> Unit = {},
     onLogout: () -> Unit
 ) {
     val assignments by viewModel.filteredAssignments.collectAsState()
@@ -88,6 +89,7 @@ fun HomeScreen(
         onToggleDarkMode = onToggleDarkMode,
         onAddAssignment = onAddAssignment,
         onEditAssignment = onEditAssignment,
+        onManageCourses = onManageCourses,
         onLogout = onLogout,
         onDeleteAssignment = { assignment -> viewModel.delete(assignment) },
         onCompleteAssignment = { assignment ->
@@ -105,6 +107,7 @@ fun HomeContent(
     onCompleteAssignment: (Assignment) -> Unit,
     onDeleteAssignment: (Assignment) -> Unit = {},
     onEditAssignment: (Assignment) -> Unit = {},
+    onManageCourses: () -> Unit = {},
     isDarkMode: Boolean = false,
     searchQuery: String = "",
     onSearchQueryChange: (String) -> Unit = {},
@@ -179,6 +182,7 @@ fun HomeContent(
                         onCompleteAssignment = onCompleteAssignment,
                         onDeleteAssignment = onDeleteAssignment,
                         onEditAssignment = onEditAssignment,
+                        onManageCourses = onManageCourses,
                         userName = userName,
                         onLogout = onLogout,
                         isDarkMode = isDarkMode,

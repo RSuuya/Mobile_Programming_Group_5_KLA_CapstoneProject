@@ -15,7 +15,7 @@ object Screen {
     const val Register = "register"
     const val Home = "home"
     const val AddAssignment = "add_assignment"
-
+    const val ManageCourses = "manage_courses"
     const val EditAssignment = "edit_assignment/{assignmentId}"
     const val CoordinatorDashboard = "coordinator_dashboard"
 }
@@ -72,6 +72,7 @@ fun CourseworkTrackerApp() {
                     onEditAssignment = { assignment ->
                         navController.navigate(editAssignmentRoute(assignment.id))
                     },
+                    onManageCourses = { navController.navigate(Screen.ManageCourses) },
                     onLogout = {
                         viewModel.logout()
                         navController.navigate(Screen.Login) {
@@ -80,8 +81,15 @@ fun CourseworkTrackerApp() {
                     }
                 )
             }
+            composable(Screen.ManageCourses) {
+                ManageCoursesScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() }
+                )
+            }
             composable(Screen.AddAssignment) {
                 AddAssignmentScreen(
+                    viewModel = viewModel,
                     onSave = { title, code, lecturer, date, notes ->
                         viewModel.insert(Assignment(
                             title = title, 
@@ -115,6 +123,7 @@ fun CourseworkTrackerApp() {
 
                 if (assignment != null) {
                     AddAssignmentScreen(
+                        viewModel = viewModel,
                         existingAssignment = assignment,
                         onSave = { title, code, lecturer, date, notes ->
                             viewModel.update(

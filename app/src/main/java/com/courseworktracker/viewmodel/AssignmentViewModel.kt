@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.courseworktracker.data.UserPreferences
 import com.courseworktracker.data.UserPreferencesRepository
 import com.courseworktracker.model.Assignment
+import com.courseworktracker.model.Course
 import com.courseworktracker.repository.AssignmentRepository
+import com.courseworktracker.repository.CourseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,6 +25,7 @@ enum class CourseworkFilter { ALL, PENDING, COMPLETED }
 @HiltViewModel
 class AssignmentViewModel @Inject constructor(
     private val repository: AssignmentRepository,
+    private val courseRepository: CourseRepository,
     private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
@@ -30,6 +33,13 @@ class AssignmentViewModel @Inject constructor(
     val courseworkFilter = MutableStateFlow(CourseworkFilter.ALL)
 
     val allAssignments: StateFlow<List<Assignment>> = repository.allAssignments
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    val allCourses: StateFlow<List<Course>> = courseRepository.allCourses
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -112,6 +122,14 @@ class AssignmentViewModel @Inject constructor(
 
     fun delete(assignment: Assignment) = viewModelScope.launch {
         repository.delete(assignment)
+    }
+
+    fun insertCourse(course: Course) = viewModelScope.launch {
+        courseRepository.insert(course)
+    }
+
+    fun deleteCourse(course: Course) = viewModelScope.launch {
+        courseRepository.delete(course)
     }
 
     fun getAssignmentsForDate(date: Date): List<Assignment> {
