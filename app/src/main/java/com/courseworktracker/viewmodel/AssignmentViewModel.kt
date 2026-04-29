@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.Calendar
+import java.util.Date
 import javax.inject.Inject
 
 enum class CourseworkFilter { ALL, PENDING, COMPLETED }
@@ -110,5 +112,21 @@ class AssignmentViewModel @Inject constructor(
 
     fun delete(assignment: Assignment) = viewModelScope.launch {
         repository.delete(assignment)
+    }
+
+    fun getAssignmentsForDate(date: Date): List<Assignment> {
+        val calendar = Calendar.getInstance()
+        calendar.time = date
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH)
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+        return allAssignments.value.filter {
+            val assignmentCalendar = Calendar.getInstance()
+            assignmentCalendar.time = it.dueDate
+            assignmentCalendar.get(Calendar.YEAR) == year &&
+                    assignmentCalendar.get(Calendar.MONTH) == month &&
+                    assignmentCalendar.get(Calendar.DAY_OF_MONTH) == day
+        }
     }
 }

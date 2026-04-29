@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Search
@@ -75,6 +76,7 @@ fun HomeScreen(
     val courseworkFilter by viewModel.courseworkFilter.collectAsState()
     
     HomeContent(
+        viewModel = viewModel,
         assignments = assignments,
         allAssignments = allAssignments,
         userName = userName,
@@ -96,6 +98,7 @@ fun HomeScreen(
 
 @Composable
 fun HomeContent(
+    viewModel: AssignmentViewModel,
     assignments: List<Assignment>,
     allAssignments: List<Assignment>,
     onAddAssignment: () -> Unit,
@@ -113,8 +116,8 @@ fun HomeContent(
     onLogout: () -> Unit = {}
 ) {
     var selectedItem by remember { mutableIntStateOf(0) }
-    val items = listOf("Dashboard", "Archive")
-    val icons = listOf(Icons.Filled.Dashboard, Icons.AutoMirrored.Filled.List)
+    val items = listOf("Dashboard", "Calendar", "Archive")
+    val icons = listOf(Icons.Filled.Dashboard, Icons.Filled.CalendarMonth, Icons.AutoMirrored.Filled.List)
 
     Scaffold(
         modifier = modifier,
@@ -151,17 +154,19 @@ fun HomeContent(
         }
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
-            SearchBar(
-                query = searchQuery,
-                onQueryChange = onSearchQueryChange,
-                modifier = Modifier.padding(16.dp)
-            )
-            
-            FilterChips(
-                selectedFilter = courseworkFilter,
-                onFilterChange = onFilterChange,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
+            if (selectedItem != 1) {
+                SearchBar(
+                    query = searchQuery,
+                    onQueryChange = onSearchQueryChange,
+                    modifier = Modifier.padding(16.dp)
+                )
+                
+                FilterChips(
+                    selectedFilter = courseworkFilter,
+                    onFilterChange = onFilterChange,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
 
             when (selectedItem) {
                 0 -> {
@@ -181,6 +186,11 @@ fun HomeContent(
                     )
                 }
                 1 -> {
+                    CalendarScreen(
+                        viewModel = viewModel
+                    )
+                }
+                2 -> {
                     val archivedAssignments = assignments.filter { it.isCompleted }
                     ArchiveContent(
                         assignments = archivedAssignments
@@ -319,34 +329,5 @@ fun ArchiveContent(
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun HomePreview() {
-    val sampleAssignments = listOf(
-        Assignment(
-            id = 1,
-            title = "Mobile App Development",
-            courseCode = "CS101",
-            dueDate = Date(),
-            isCompleted = false
-        ),
-        Assignment(
-            id = 2,
-            title = "Database Systems",
-            courseCode = "CS102",
-            dueDate = Date(),
-            isCompleted = true
-        )
-    )
-    NdejjeCourseworkTrackerTheme(dynamicColor = false) {
-        HomeContent(
-            assignments = sampleAssignments,
-            allAssignments = sampleAssignments,
-            onAddAssignment = {},
-            onCompleteAssignment = {}
-        )
     }
 }
