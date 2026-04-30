@@ -228,6 +228,7 @@ fun DashboardContent(
     onCompleteAssignment: (Assignment) -> Unit,
     onDeleteAssignment: (Assignment) -> Unit = {},
     onEditAssignment: (Assignment) -> Unit = {},
+    onManageCourses: () -> Unit = {},
     modifier: Modifier = Modifier,
     onLogout: () -> Unit = {},
     userName: String = "User",
