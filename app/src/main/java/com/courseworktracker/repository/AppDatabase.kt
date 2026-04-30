@@ -6,11 +6,13 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.courseworktracker.model.Assignment
+import com.courseworktracker.model.Course
 
-@Database(entities = [Assignment::class], version = 3, exportSchema = false)
+@Database(entities = [Assignment::class, Course::class], version = 5, exportSchema = false)
 @TypeConverters(DateConverter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun assignmentDao(): AssignmentDao
+    abstract fun courseDao(): CourseDao
 
     companion object {
         @Volatile

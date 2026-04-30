@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Ndejje Coursework Tracker</string>
+    <string name="app_name">Coursework Tracker</string>
     <string name="login_title">Login</string>
     <string name="username_label">Username</string>
     <string name="password_label">Password</string>

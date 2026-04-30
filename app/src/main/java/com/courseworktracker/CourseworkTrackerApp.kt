@@ -68,10 +68,9 @@ fun CourseworkTrackerApp() {
                     userName = userPrefs.userName,
                     isDarkMode = userPrefs.isDarkMode,
                     onToggleDarkMode = { viewModel.toggleDarkMode() },
-                    onAddAssignment = { navController.navigate(Screen.AddAssignment) }, // ✅ fixed
-                    onEditAssignment = { assignment ->
+                    onAddAssignment = { assignment ->
                         navController.navigate(editAssignmentRoute(assignment.id))
-                    },
+                                      },
                     onLogout = {
                         viewModel.logout()
                         navController.navigate(Screen.Login) {

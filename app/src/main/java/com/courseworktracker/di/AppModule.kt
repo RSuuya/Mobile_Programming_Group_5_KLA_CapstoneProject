@@ -8,6 +8,7 @@ import androidx.datastore.preferences.preferencesDataStoreFile
 import com.courseworktracker.repository.AppDatabase
 import com.courseworktracker.repository.AssignmentDao
 import com.courseworktracker.repository.AssignmentRepository
+import com.courseworktracker.repository.CourseDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,6 +29,11 @@ object AppModule {
     @Provides
     fun provideAssignmentDao(database: AppDatabase): AssignmentDao {
         return database.assignmentDao()
+    }
+
+    @Provides
+    fun provideCourseDao(database: AppDatabase): CourseDao {
+        return database.courseDao()
     }
 
     @Provides
