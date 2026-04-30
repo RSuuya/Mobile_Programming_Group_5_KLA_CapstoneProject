@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.hilt.android)
 }
 
 android {
@@ -29,14 +30,16 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
         compose = true
     }
-    kotlinOptions {
-        jvmTarget = "11"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        }
     }
 }
 
@@ -60,7 +63,24 @@ dependencies {
     // Navigation
     implementation(libs.androidx.navigation.compose)
 
+    // Splash Screen
+    implementation(libs.androidx.core.splashscreen)
+
+    // DataStore
+    implementation(libs.androidx.datastore.preferences)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
+
+    // WorkManager
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.hilt.ext.work)
+    ksp(libs.hilt.ext.compiler)
+
     implementation(libs.androidx.glance.preview)
+    implementation(libs.gson)
     testImplementation(libs.junit)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)

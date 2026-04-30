@@ -1,8 +1,7 @@
 package com.courseworktracker
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.*
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -10,33 +9,41 @@ import com.courseworktracker.model.Assignment
 import com.courseworktracker.ui.theme.NdejjeCourseworkTrackerTheme
 import com.courseworktracker.view.*
 import com.courseworktracker.viewmodel.AssignmentViewModel
-import com.courseworktracker.viewmodel.AssignmentViewModelFactory
-import java.util.Date
 
 object Screen {
     const val Login = "login"
     const val Register = "register"
     const val Home = "home"
     const val AddAssignment = "add_assignment"
-    const val CoordinatorUpload = "coordinator_upload"
-}
 
+    const val EditAssignment = "edit_assignment/{assignmentId}"
+    const val CoordinatorDashboard = "coordinator_dashboard"
+}
+fun editAssignmentRoute(id: Int) = "edit_assignment/$id"
 @Composable
 fun CourseworkTrackerApp() {
-    val context = LocalContext.current
-    val application = context.applicationContext as CourseworkTrackerApplication
-    val repository = application.repository
-    val viewModelFactory = AssignmentViewModelFactory(repository)
-    
     val navController = rememberNavController()
-    
-    NdejjeCourseworkTrackerTheme {
-        NavHost(navController = navController, startDestination = Screen.Login) {
+    val viewModel: AssignmentViewModel = hiltViewModel()
+    val userPrefs by viewModel.userPreferences.collectAsState()
+
+    // Determine start destination based on login state
+    val startDestination = if (userPrefs.isLoggedIn) {
+        if (userPrefs.isCoordinator) Screen.CoordinatorDashboard else Screen.Home
+    } else {
+        Screen.Login
+    }
+
+    NdejjeCourseworkTrackerTheme (darkTheme = userPrefs.isDarkMode){
+        NavHost(
+            navController = navController, 
+            startDestination = startDestination
+        ) {
             composable(Screen.Login) {
                 LoginScreen(
                     onNavigateToRegister = { navController.navigate(Screen.Register) },
-                    onLoginSuccess = { isCoordinator ->
-                        val destination = if (isCoordinator) Screen.CoordinatorUpload else Screen.Home
+                    onLoginSuccess = { isCoordinator, name ->
+                        viewModel.updateLoginState(name, isCoordinator, true)
+                        val destination = if (isCoordinator) Screen.CoordinatorDashboard else Screen.Home
                         navController.navigate(destination) {
                             popUpTo(Screen.Login) { inclusive = true }
                         }
@@ -46,8 +53,9 @@ fun CourseworkTrackerApp() {
             composable(Screen.Register) {
                 RegisterScreen(
                     onNavigateToLogin = { navController.navigate(Screen.Login) },
-                    onRegisterSuccess = { isCoordinator ->
-                        val destination = if (isCoordinator) Screen.CoordinatorUpload else Screen.Home
+                    onRegisterSuccess = { isCoordinator, name ->
+                        viewModel.updateLoginState(name, isCoordinator, true)
+                        val destination = if (isCoordinator) Screen.CoordinatorDashboard else Screen.Home
                         navController.navigate(destination) {
                             popUpTo(Screen.Register) { inclusive = true }
                         }
@@ -55,14 +63,23 @@ fun CourseworkTrackerApp() {
                 )
             }
             composable(Screen.Home) {
-                val viewModel: AssignmentViewModel = viewModel(factory = viewModelFactory)
                 HomeScreen(
                     viewModel = viewModel,
-                    onAddAssignment = { navController.navigate(Screen.AddAssignment) }
+                    userName = userPrefs.userName,
+                    isDarkMode = userPrefs.isDarkMode,
+                    onToggleDarkMode = { viewModel.toggleDarkMode() },
+                    onAddAssignment = { assignment ->
+                        navController.navigate(editAssignmentRoute(assignment.id))
+                                      },
+                    onLogout = {
+                        viewModel.logout()
+                        navController.navigate(Screen.Login) {
+                            popUpTo(Screen.Home) { inclusive = true }
+                        }
+                    }
                 )
             }
             composable(Screen.AddAssignment) {
-                val viewModel: AssignmentViewModel = viewModel(factory = viewModelFactory)
                 AddAssignmentScreen(
                     onSave = { title, code, lecturer, date ->
                         viewModel.insert(Assignment(
@@ -77,12 +94,40 @@ fun CourseworkTrackerApp() {
                     onBack = { navController.popBackStack() }
                 )
             }
-            composable(Screen.CoordinatorUpload) {
-                val viewModel: AssignmentViewModel = viewModel(factory = viewModelFactory)
-                CoordinatorUploadScreen(
+            composable(Screen.CoordinatorDashboard) {
+                CoordinatorDashboardScreen(
                     viewModel = viewModel,
-                    onBack = { navController.popBackStack() }
+                    userName = userPrefs.userName,
+                    onLogout = {
+                        viewModel.logout()
+                        navController.navigate(Screen.Login) {
+                            popUpTo(Screen.CoordinatorDashboard) { inclusive = true }
+                        }
+                    }
                 )
+            }
+            composable(Screen.EditAssignment) { backStackEntry ->
+                val assignmentId = backStackEntry.arguments?.getString("assignmentId")?.toIntOrNull()
+                val assignments by viewModel.allAssignments.collectAsState()
+                val assignment = assignments.find { it.id == assignmentId }
+
+                if (assignment != null) {
+                    AddAssignmentScreen(
+                        existingAssignment = assignment,
+                        onSave = { title, code, lecturer, date ->
+                            viewModel.update(
+                                assignment.copy(
+                                    title = title,
+                                    courseCode = code,
+                                    lecturer = lecturer,
+                                    dueDate = date
+                                )
+                            )
+                            navController.popBackStack()
+                        },
+                        onBack = { navController.popBackStack() }
+                    )
+                }
             }
         }
     }

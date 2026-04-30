@@ -3,12 +3,12 @@
     <!-- Font Sizes -->
     <dimen name="text_small">12sp</dimen>
     <dimen name="text_medium">16sp</dimen>
-    <dimen name="text_large">20sp</dimen>
+    <dimen name="text_large">18sp</dimen>
     <dimen name="text_xlarge">24sp</dimen>
 
     <!-- Standard Spacing -->
     <dimen name="padding_small">8dp</dimen>
-    <dimen name="padding_medium">16dp</dimen>
+    <dimen name="padding_medium">8dp</dimen>
     <dimen name="padding_large">24dp</dimen>
     <dimen name="card_elevation">4dp</dimen>
     <dimen name="spacer_height">8dp</dimen>
@@ -17,6 +17,6 @@
     <item name="primary_color" type="color">#6200EE</item>
     <item name="secondary_color" type="color">#03DAC6</item>
     <item name="background_color" type="color">#F5F5F5</item>
-    <item name="surface_color" type="color">#FFFFFF</item>
+    <item name="surface_color" type="color">#FFFF0F</item>
     <item name="error_color" type="color">#B00020</item>
 </resources>

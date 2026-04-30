@@ -11,11 +11,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.courseworktracker.R
 import com.courseworktracker.model.Assignment
 import com.courseworktracker.viewmodel.AssignmentViewModel
 import java.util.Date
@@ -24,7 +21,9 @@ import java.util.Date
 @Composable
 fun CoordinatorUploadScreen(
     viewModel: AssignmentViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    onLogout: () -> Unit = {}
 ) {
     var title by remember { mutableStateOf("") }
     var courseCode by remember { mutableStateOf("") }
@@ -32,18 +31,12 @@ fun CoordinatorUploadScreen(
     val assignments by viewModel.allAssignments.collectAsState()
 
     Scaffold(
+        modifier = modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
-                title = { Text("Coordinator Upload Panel") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary
-                )
+            TrackerTopAppBar(
+                title = "Coordinator Panel",
+                subtitle = "Upload Coursework",
+                onLogout = onLogout
             )
         }
     ) { padding ->

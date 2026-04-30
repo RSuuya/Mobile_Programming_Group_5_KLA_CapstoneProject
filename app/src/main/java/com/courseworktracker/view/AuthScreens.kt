@@ -69,7 +69,7 @@ fun TrackerTextField(
 @Composable
 fun LoginScreen(
     onNavigateToRegister: () -> Unit,
-    onLoginSuccess: (Boolean) -> Unit
+    onLoginSuccess: (Boolean, String) -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -164,7 +164,9 @@ fun LoginScreen(
                     if (email.isBlank() || password.isBlank()) {
                         errorMessage = "Please enter both email and password"
                     } else {
-                        onLoginSuccess(email.contains("coordinator", ignoreCase = true))
+                        val isCoordinator = email.contains("coordinator", ignoreCase = true)
+                        val name = email.substringBefore("@").replaceFirstChar { it.uppercase() }
+                        onLoginSuccess(isCoordinator, name)
                     }
                 },
                 modifier = Modifier
@@ -194,7 +196,7 @@ fun LoginScreen(
 }
 
 @Composable
-fun RegisterScreen(onNavigateToLogin: () -> Unit, onRegisterSuccess: (Boolean) -> Unit) {
+fun RegisterScreen(onNavigateToLogin: () -> Unit, onRegisterSuccess: (Boolean, String) -> Unit) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -311,7 +313,7 @@ fun RegisterScreen(onNavigateToLogin: () -> Unit, onRegisterSuccess: (Boolean) -
                     if (name.isBlank() || email.isBlank() || password.isBlank()) {
                         errorMessage = "Please fill in all fields"
                     } else {
-                        onRegisterSuccess(isCoordinator)
+                        onRegisterSuccess(isCoordinator, name)
                     }
                 },
                 modifier = Modifier
@@ -344,7 +346,7 @@ fun RegisterScreen(onNavigateToLogin: () -> Unit, onRegisterSuccess: (Boolean) -
 @Composable
 fun LoginPreview() {
     NdejjeCourseworkTrackerTheme(dynamicColor = false) {
-        LoginScreen(onNavigateToRegister = {}, onLoginSuccess = {})
+        LoginScreen(onNavigateToRegister = {}, onLoginSuccess = { _, _ -> })
     }
 }
 
@@ -352,6 +354,6 @@ fun LoginPreview() {
 @Composable
 fun RegisterPreview() {
     NdejjeCourseworkTrackerTheme(dynamicColor = false) {
-        RegisterScreen(onNavigateToLogin = {}, onRegisterSuccess = {})
+        RegisterScreen(onNavigateToLogin = {}, onRegisterSuccess = { _, _ -> })
     }
 }

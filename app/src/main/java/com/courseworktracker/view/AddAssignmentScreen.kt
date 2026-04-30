@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
@@ -14,35 +15,34 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.courseworktracker.R
+import com.courseworktracker.model.Assignment
+import com.courseworktracker.model.Course
 import com.courseworktracker.ui.theme.NdejjeCourseworkTrackerTheme
+import com.courseworktracker.viewmodel.AssignmentViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddAssignmentScreen(
-    onSave: (String, String, String, Date) -> Unit,
+    viewModel: AssignmentViewModel,
+    onSave: (String, String, String, Date, String) -> Unit,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    existingAssignment: Assignment? = null
 ) {
-    var title by remember { mutableStateOf("") }
-    var selectedCourse by remember { mutableStateOf("") }
-    var lecturer by remember { mutableStateOf("") }
-    var selectedDate by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    val savedCourses by viewModel.allCourses.collectAsState()
+    
+    var title by remember { mutableStateOf(existingAssignment?.title ?: "") }
+    var selectedCourse by remember { mutableStateOf(existingAssignment?.courseCode ?: "") }
+    var lecturer by remember { mutableStateOf(existingAssignment?.lecturer ?: "") }
+    var selectedDate by remember { mutableLongStateOf(existingAssignment?.dueDate?.time ?: System.currentTimeMillis()) }
+    var notes by remember { mutableStateOf(existingAssignment?.notes ?: "") }
     var showDatePicker by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
     
     var titleError by remember { mutableStateOf(false) }
     var courseError by remember { mutableStateOf(false) }
-
-    val courses = listOf(
-        "BCS2201 - Mobile App Dev",
-        "BIT2205 - Database Systems",
-        "BSE3102 - Network Security",
-        "BCS2104 - Data Structures",
-        "BIT1203 - Programming I",
-        "BSE4101 - Software Eng"
-    )
 
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = selectedDate)
     val dateFormatter = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
@@ -71,7 +71,8 @@ fun AddAssignmentScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = stringResource(id = R.string.add_coursework)) },
+                title = { Text( text = if (existingAssignment != null) "Edit Coursework"
+                        else stringResource(id = R.string.add_coursework)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -109,7 +110,7 @@ fun AddAssignmentScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Course Unit Dropdown
+            // Dynamic Course Unit Dropdown
             ExposedDropdownMenuBox(
                 expanded = expanded,
                 onExpandedChange = { expanded = !expanded }
@@ -122,6 +123,7 @@ fun AddAssignmentScreen(
                     isError = courseError,
                     supportingText = {
                         if (courseError) Text("Please select a course", color = MaterialTheme.colorScheme.error)
+                        else if (savedCourses.isEmpty()) Text("No courses found. Add them in Manage Courses.", color = MaterialTheme.colorScheme.primary)
                     },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                     modifier = Modifier
@@ -132,11 +134,11 @@ fun AddAssignmentScreen(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
-                    courses.forEach { course ->
+                    savedCourses.forEach { course ->
                         DropdownMenuItem(
-                            text = { Text(course) },
+                            text = { Text("${course.code} - ${course.name}") },
                             onClick = {
-                                selectedCourse = course
+                                selectedCourse = course.code
                                 courseError = false
                                 expanded = false
                             }
@@ -170,6 +172,18 @@ fun AddAssignmentScreen(
                     .clickable { showDatePicker = true }
             )
 
+            // Notes field
+            OutlinedTextField(
+                value = notes,
+                onValueChange = { notes = it },
+                label = { Text("Requirements / Notes") },
+                leadingIcon = { Icon(Icons.AutoMirrored.Filled.Notes, contentDescription = null) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp),
+                minLines = 3
+            )
+
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
@@ -178,7 +192,7 @@ fun AddAssignmentScreen(
                     courseError = selectedCourse.isBlank()
                     
                     if (!titleError && !courseError) {
-                        onSave(title, selectedCourse.split(" - ")[0], lecturer, Date(selectedDate))
+                        onSave(title, selectedCourse, lecturer, Date(selectedDate), notes)
                     }
                 },
                 modifier = Modifier
@@ -186,16 +200,10 @@ fun AddAssignmentScreen(
                     .height(56.dp),
                 shape = MaterialTheme.shapes.medium
             ) {
-                Text(stringResource(id = R.string.save_button))
+                Text(
+                    if (existingAssignment != null) "Update"
+                        else stringResource(id = R.string.save_button))
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AddAssignmentPreview() {
-    NdejjeCourseworkTrackerTheme {
-        AddAssignmentScreen(onSave = { _, _, _, _ -> }, onBack = {})
     }
 }
