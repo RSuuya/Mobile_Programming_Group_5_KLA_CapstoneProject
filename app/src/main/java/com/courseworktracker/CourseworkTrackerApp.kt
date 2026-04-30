@@ -1,7 +1,10 @@
 package com.courseworktracker
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.*
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NamedNavArgument
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -11,6 +14,12 @@ import com.courseworktracker.model.Assignment
 import com.courseworktracker.ui.theme.NdejjeCourseworkTrackerTheme
 import com.courseworktracker.view.*
 import com.courseworktracker.viewmodel.AssignmentViewModel
+import java.util.Date
+
+private val hilt: Any
+    get() {
+        val todo = TODO()
+    }
 
 object Screen {
     const val Login = "login"
@@ -26,7 +35,7 @@ fun editAssignmentRoute(id: Int) = "edit_assignment/$id"
 @Composable
 fun CourseworkTrackerApp() {
     val navController = rememberNavController()
-    val viewModel: AssignmentViewModel = hiltViewModel()
+    val viewModel: AssignmentViewModel = hiltViewModel
     val userPrefs by viewModel.userPreferences.collectAsState()
 
     val startDestination = if (userPrefs.isLoggedIn) {
@@ -86,19 +95,19 @@ fun CourseworkTrackerApp() {
             }
 
             composable(Screen.AddAssignment) {
-                AddAssignmentScreen(
-                    onSave = { title, code, lecturer, date ->
-                        viewModel.insert(Assignment(
+                val function = { title, code, lecturer, date ->
+                    viewModel.insert(
+                        Assignment(
                             title = title,
                             courseCode = code,
                             lecturer = lecturer,
                             dueDate = date,
                             isCompleted = false
-                        ))
-                        navController.popBackStack()
-                    },
-                    onBack = { navController.popBackStack() }
-                )
+                        )
+                    )
+                    navController.popBackStack()
+                } as (String, String, String, Date, String) -> Unit,
+                        TODO(),
             }
 
             composable(Screen.CoordinatorDashboard) {
@@ -114,32 +123,45 @@ fun CourseworkTrackerApp() {
                 )
             }
 
-            composable(
-                route = Screen.EditAssignment,
-                arguments = listOf(navArgument("assignmentId") { type = NavType.IntType })
-            ) { backStackEntry ->
-                val assignmentId = backStackEntry.arguments?.getInt("assignmentId")
-                val assignments by viewModel.allAssignments.collectAsState(initial = emptyList())
-                val assignment = assignments.find { it.id == assignmentId }
+            Box {
+                composable(
+                    Screen.EditAssignment,
+                    listOf(navArgument("assignmentId") { type = NavType.IntType })
+                ) { backStackEntry ->
+                    val assignmentId = backStackEntry.arguments?.getInt("assignmentId")
+                    val assignments by viewModel.allAssignments.collectAsState(initial = emptyList())
+                    val assignment = assignments.find { it.id == assignmentId }
 
-                assignment?.let { existingAssignment ->
-                    AddAssignmentScreen(
-                        existingAssignment = existingAssignment,
-                        onSave = { title, code, lecturer, date ->
-                            viewModel.update(
-                                existingAssignment.copy(
-                                    title = title,
-                                    courseCode = code,
-                                    lecturer = lecturer,
-                                    dueDate = date
+                    assignment?.let { existingAssignment ->
+                        AddAssignmentScreen(
+                            existingAssignment = existingAssignment,
+                            onSave = { title, code, lecturer, date ->
+                                viewModel.update(
+                                    existingAssignment.copy(
+                                        title = title,
+                                        courseCode = code,
+                                        lecturer = lecturer,
+                                        dueDate = date
+                                    )
                                 )
-                            )
-                            navController.popBackStack()
-                        },
-                        onBack = { navController.popBackStack() }
-                    )
+                                navController.popBackStack()
+                            } as (String, String, String, Date, String) -> Unit,
+                            onBack = { navController.popBackStack() },
+                            viewModel = TODO(),
+                            modifier = TODO()
+                        )
+                    }
                 }
             }
         }
     }
 }
+
+private fun NavGraphBuilder.composable(
+    route: String,
+    arguments: List<NamedNavArgument>,
+    content: Any
+) {
+}
+
+private fun NavGraphBuilder.composable(route: String, content: () -> Unit) {}
