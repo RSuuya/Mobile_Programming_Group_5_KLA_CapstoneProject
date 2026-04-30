@@ -42,6 +42,8 @@ import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import kotlinx.coroutines.launch
 
 enum class AssignmentFilter { ALL, OVERDUE, UPCOMING }
 @Composable
@@ -229,7 +231,7 @@ fun DashboardContent(
     modifier: Modifier = Modifier,
     onLogout: () -> Unit = {},
     userName: String = "User",
-    isDarkMode: Boolean = false,           // ✅ add
+    isDarkMode: Boolean = false,
     onToggleDarkMode: () -> Unit = {}
 ) {
     val listState = rememberLazyListState()
@@ -282,12 +284,13 @@ fun DashboardContent(
             onCompleteAssignment = onCompleteAssignment,
             onDeleteAssignment = onDeleteAssignment,
             onEditAssignment = onEditAssignment,
+            onRefresh = { /* Room DB auto-updates via Flow, so this is just visual */ },  // ✅ add
             listState = listState,
             modifier = Modifier.padding(innerPadding)
         )
     }
 }
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardBody(
     assignments: List<Assignment>,
@@ -296,56 +299,71 @@ fun DashboardBody(
     onCompleteAssignment: (Assignment) -> Unit,
     onDeleteAssignment: (Assignment) -> Unit = {},
     onEditAssignment: (Assignment) -> Unit = {},
+    onRefresh: () -> Unit = {},
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState()
 ) {
-    Column(
+    var isRefreshing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    PullToRefreshBox(                                  // ✅ wraps everything
+        isRefreshing = isRefreshing,
+        onRefresh = {
+            scope.launch {
+                isRefreshing = true
+                onRefresh()
+                delay(800)
+                isRefreshing = false
+            }
+        },
         modifier = modifier.fillMaxSize()
     ) {
-        ProgressOverviewCard(totalCount = totalCount, completedCount = completedCount)
-        
-        if (assignments.isEmpty()) {
-            EmptyDashboardState()
-        } else {
-            val grouped = assignments.groupBy { 
-                val diff = it.dueDate.time - System.currentTimeMillis()
-                val days = TimeUnit.MILLISECONDS.toDays(diff)
-                when {
-                    diff < 0 -> "Overdue"
-                    days < 1 -> "Due Today"
-                    days < 3 -> "Upcoming"
-                    else -> "Later"
-                }
-            }
+        Column(
+            modifier = modifier.fillMaxSize()) {
+            ProgressOverviewCard(totalCount = totalCount, completedCount = completedCount)
 
-            LazyColumn(
-                state = listState,
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                listOf("Overdue", "Due Today", "Upcoming", "Later").forEach { category ->
-                    grouped[category]?.let { categoryAssignments ->
-                        item {
-                            Text(
-                                text = category,
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = when(category) {
-                                    "Overdue" -> MaterialTheme.colorScheme.error
-                                    "Due Today" -> Color(0xFFFB8C00)
-                                    else -> MaterialTheme.colorScheme.primary
-                                },
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            )
-                        }
-                        items(categoryAssignments) { assignment ->
-                            AssignmentCard(
-                                assignment = assignment,
-                                onComplete = { onCompleteAssignment(assignment) },
-                                onDelete = { onDeleteAssignment(assignment) },
-                                onEdit = { onEditAssignment(assignment) }
-                            )
+            if (assignments.isEmpty()) {
+                EmptyDashboardState()
+            } else {
+                val grouped = assignments.groupBy {
+                    val diff = it.dueDate.time - System.currentTimeMillis()
+                    val days = TimeUnit.MILLISECONDS.toDays(diff)
+                    when {
+                        diff < 0 -> "Overdue"
+                        days < 1 -> "Due Today"
+                        days < 3 -> "Upcoming"
+                        else -> "Later"
+                    }
+                }
+
+                LazyColumn(
+                    state = listState,
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    listOf("Overdue", "Due Today", "Upcoming", "Later").forEach { category ->
+                        grouped[category]?.let { categoryAssignments ->
+                            item {
+                                Text(
+                                    text = category,
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = when (category) {
+                                        "Overdue" -> MaterialTheme.colorScheme.error
+                                        "Due Today" -> Color(0xFFFB8C00)
+                                        else -> MaterialTheme.colorScheme.primary
+                                    },
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                            }
+                            items(categoryAssignments) { assignment ->
+                                AssignmentCard(
+                                    assignment = assignment,
+                                    onComplete = { onCompleteAssignment(assignment) },
+                                    onDelete = { onDeleteAssignment(assignment) },
+                                    onEdit = { onEditAssignment(assignment) }
+                                )
+                            }
                         }
                     }
                 }
@@ -353,7 +371,6 @@ fun DashboardBody(
         }
     }
 }
-
 @Composable
 fun ProgressOverviewCard(totalCount: Int, completedCount: Int) {
     val progress = if (totalCount > 0) completedCount.toFloat() / totalCount.toFloat() else 0f
