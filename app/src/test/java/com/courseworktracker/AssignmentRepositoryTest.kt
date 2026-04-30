@@ -47,3 +47,7 @@ class AssignmentRepositoryTest {
         verify(assignmentDao).upsertAssignment(assignment)
     }
 }
+
+class MockitoAnnotations {
+
+}
