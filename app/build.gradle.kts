@@ -58,6 +58,8 @@ dependencies {
     // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.hilt.navigation.compose)
+    implementation(libs.dagger.hilt.android)
     ksp(libs.androidx.room.compiler)
 
     // Navigation
