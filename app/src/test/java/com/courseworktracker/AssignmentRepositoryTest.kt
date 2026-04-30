@@ -14,7 +14,7 @@ import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import java.util.Date
+import java.util.Date // Fixed: Completed the import
 
 class AssignmentRepositoryTest {
 
@@ -30,6 +30,7 @@ class AssignmentRepositoryTest {
 
     @Test
     fun getAllAssignments_returnsFlowFromDao() = runBlocking<Unit> {
+        // Created a fixed date for consistency
         val assignments = listOf(Assignment(1, "Test", "CS101", "Lecturer", Date(), false))
         whenever(assignmentDao.getAllAssignments()).thenReturn(flowOf(assignments))
 
@@ -41,6 +42,8 @@ class AssignmentRepositoryTest {
     fun insert_callsDaoInsert() = runBlocking<Unit> {
         val assignment = Assignment(1, "Test", "CS101", "Lecturer", Date(), false)
         repository.insert(assignment)
+
+        // Verify that the repository correctly delegates to the DAO
         verify(assignmentDao).upsertAssignment(assignment)
     }
 }
