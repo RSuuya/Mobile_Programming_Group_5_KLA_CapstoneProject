@@ -229,7 +229,7 @@ fun DashboardContent(
     modifier: Modifier = Modifier,
     onLogout: () -> Unit = {},
     userName: String = "User",
-    isDarkMode: Boolean = false,           // ✅ add
+    isDarkMode: Boolean = false,
     onToggleDarkMode: () -> Unit = {}
 ) {
     val listState = rememberLazyListState()
@@ -523,6 +523,14 @@ fun AssignmentCard(
                         fontWeight = FontWeight.Bold,
                         maxLines = 1
                     )
+                    if (assignment.lecturer.isNotBlank()) {
+                        Text(
+                            text = assignment.lecturer,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
