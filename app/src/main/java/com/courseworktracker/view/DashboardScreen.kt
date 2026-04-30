@@ -454,9 +454,8 @@ fun AssignmentCard(
 
     SwipeToDismissBox(
         state = dismissState,
-        enableDismissFromStartToEnd = false,   // only left swipe
+        enableDismissFromStartToEnd = false,
         backgroundContent = {
-            // Red background revealed on swipe
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -484,7 +483,6 @@ fun AssignmentCard(
             }
         }
     ) {
-
         val deadlineColor = getDeadlineColor(assignment.dueDate)
         val dateFormat = SimpleDateFormat("EEE, MMM dd 'at' HH:mm", Locale.getDefault())
 
@@ -502,6 +500,7 @@ fun AssignmentCard(
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Left color bar
                 Box(
                     modifier = Modifier
                         .width(6.dp)
@@ -510,6 +509,8 @@ fun AssignmentCard(
                         .background(deadlineColor)
                 )
                 Spacer(modifier = Modifier.width(16.dp))
+
+                // Main content column
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = assignment.courseCode,
@@ -523,6 +524,7 @@ fun AssignmentCard(
                         fontWeight = FontWeight.Bold,
                         maxLines = 1
                     )
+                    // ✅ lecturer name
                     if (assignment.lecturer.isNotBlank()) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
@@ -531,7 +533,17 @@ fun AssignmentCard(
                                 modifier = Modifier.size(12.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = assignment.lecturer,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
                     Spacer(modifier = Modifier.height(4.dp))
+                    // Due date row
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             painterResource(id = android.R.drawable.ic_menu_myplaces),
@@ -556,6 +568,8 @@ fun AssignmentCard(
                         }
                     }
                 }
+
+                // Edit button
                 if (onEdit != null && !assignment.isCompleted) {
                     IconButton(
                         onClick = onEdit,
@@ -573,6 +587,7 @@ fun AssignmentCard(
                     Spacer(modifier = Modifier.width(4.dp))
                 }
 
+                // Complete button
                 if (onComplete != null && !assignment.isCompleted) {
                     IconButton(
                         onClick = onComplete,
@@ -591,7 +606,7 @@ fun AssignmentCard(
             }
         }
     }
-}@Composable
+}        @Composable
 fun CountdownTimer(dueDate: Date) {
     var timeLeft by remember { mutableLongStateOf(dueDate.time - System.currentTimeMillis()) }
 
