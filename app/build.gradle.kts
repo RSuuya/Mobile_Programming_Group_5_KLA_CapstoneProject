@@ -81,6 +81,7 @@ dependencies {
     ksp(libs.hilt.ext.compiler)
 
     implementation(libs.androidx.glance.preview)
+    implementation(libs.androidx.concurrent.futures.ktx)
     implementation(libs.gson)
     testImplementation(libs.junit)
     testImplementation(libs.mockito.core)
