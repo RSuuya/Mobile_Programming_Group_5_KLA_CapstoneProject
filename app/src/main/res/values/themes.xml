@@ -2,7 +2,8 @@
 <!--suppress ALL -->
 <resources>
 
-    <style name="Theme.NdejjeCourseworkTracker" parent="Theme.Material3.DayNight.NoActionBar">
+    <!-- Use a base theme that is guaranteed to exist -->
+    <style name="Theme.NdejjeCourseworkTracker" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Optional: Match your status bar color to your Compose theme -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>
