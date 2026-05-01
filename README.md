@@ -1,10 +1,10 @@
-# Ndejje Coursework Tracker 🎓
+# Ndejje Coursework Tracker 
 
 A robust Android application designed to help Ndejje University students and coordinators manage academic assignments and coursework efficiently. Built with modern Android development practices, this app provides a seamless experience for tracking deadlines, organizing tasks, and facilitating communication between students and coordinators.
 
-## 🚀 Key Features
+## Key Features
 
-### For Students 👨‍🎓
+### For Students 
 - **Personal Dashboard:** View a summary of upcoming deadlines and task progress.
 - **Assignment Management:** Add, edit, and delete personal assignments.
 - **Progress Tracking:** Mark assignments as completed and archive old tasks.
@@ -12,12 +12,12 @@ A robust Android application designed to help Ndejje University students and coo
 - **Notifications:** Receive timely reminders for approaching deadlines.
 - **Dark Mode Support:** Switch between light and dark themes for better readability.
 
-### For Coordinators 👩‍🏫
+### For Coordinators 
 - **Broadcast System:** Post assignments and announcements to all students.
 - **Course Management:** Add and manage different course units within the system.
 - **Global Dashboard:** Oversee task distribution and managed content.
 
-## 🛠 Tech Stack
+##  Tech Stack
 
 - **Jetpack Compose:** For building a modern, declarative UI.
 - **Hilt (Dagger):** Dependency injection for better modularity and testability.
@@ -71,6 +71,6 @@ com.courseworktracker
 - Access the **Coordinator Dashboard** to broadcast new assignments to all students.
 - Manage the list of active courses available in the system.
 
-## 📄 License
+##  License
 
 This project was developed as part of the Mobile Programming Group 5 KLA Capstone Project. All rights reserved.
