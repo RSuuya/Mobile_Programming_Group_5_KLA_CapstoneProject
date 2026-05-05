@@ -1,3 +1,4 @@
+https://youtu.be/n-qhNzO0O8E
 # Ndejje Coursework Tracker 
 
 A robust Android application designed to help Ndejje University students and coordinators manage academic assignments and coursework efficiently. Built with modern Android development practices, this app provides a seamless experience for tracking deadlines, organizing tasks, and facilitating communication between students and coordinators.
